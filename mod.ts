@@ -211,7 +211,7 @@ export function playCues(cues: readonly Cue[]): ExpectedBeat[] {
   return beats;
 }
 
-const errorTypes = ["uncued_hit", "skipped_hit", "expected_hit", "overlapping_skipshot"] as const;
+const errorTypes = ["uncued_hit", "skipped_hit", "missing_hit", "overlapping_skipshot"] as const;
 type ErrorType = typeof errorTypes[number];
 
 interface CueError {
@@ -244,7 +244,7 @@ export function checkBeats(beats: Beat[], expected: ExpectedBeat[]): CueError[] 
     if (isHit && isSkipped)
       errors.push({ type: "skipped_hit", time });
     else if (isHit === isSkipped)
-      errors.push({ type: "expected_hit", time });
+      errors.push({ type: "missing_hit", time });
   }
   errors.sort((a, b) => errorTypes.indexOf(a.type) - errorTypes.indexOf(b.type) || a.time - b.time);
   unique(errors, (a, b) => a.type === b.type && almostEqual(a.time, b.time));
@@ -263,8 +263,8 @@ if (import.meta.main) {
         case "skipped_hit":
           console.error(`Hit at ${time.toFixed(3)}s is skipped by a previous skipshot`);
           break;
-        case "expected_hit":
-          console.error(`Expected hit at ${time.toFixed(3)}s`);
+        case "missing_hit":
+          console.error(`Missing hit at ${time.toFixed(3)}s`);
           break;
         case "overlapping_skipshot":
           console.error(`Overlapping skipshot at ${time.toFixed(3)}s`);
