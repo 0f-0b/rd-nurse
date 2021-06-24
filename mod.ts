@@ -1,8 +1,11 @@
 import { readText } from "./io.ts";
-import { almostEqual, includes, repeat } from "./util.ts";
+import { almostEqual, includes, repeat, unique } from "./util.ts";
 
-type CueType = "get" | "set" | "go" | "stop" | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-const cueTypes = new Map<string, CueType[]>([
+const cueTypes = ["get", "set", "go", "stop", 1, 2, 3, 4, 5, 6, 7, 8] as const;
+const cueSources = ["nurse", "ian"] as const;
+type CueType = typeof cueTypes[number];
+type CueSource = typeof cueSources[number];
+const cueTypeMap = new Map<string, CueType[]>([
   ["SayReaDyGetSetGoNew", ["get", "set", "get", "set", "go"]],
   ["SayGetSetGo", ["get", "set", "go"]],
   ["SayReaDyGetSetOne", ["get", "set", "get", "set", 1]],
@@ -25,8 +28,7 @@ const cueTypes = new Map<string, CueType[]>([
   ["SayReadyGetSetGo", ["get", "set", "get", "set", "go"]],
   ["JustSayReady", ["get", "set"]]
 ]);
-type CueSource = "nurse" | "ian";
-const cueSources = new Map<string, CueSource>([
+const cueSourceMap = new Map<string, CueSource>([
   ["Nurse", "nurse"],
   ["NurseTired", "nurse"],
   ["IanExcited", "ian"],
@@ -73,8 +75,8 @@ export function parseLevel(level: string): { cues: Cue[]; beats: Beat[]; } {
         break;
       case "SayReadyGetSetGo": {
         const tick = event.tick;
-        const parts = cueTypes.get(event.phraseToSay) ?? [];
-        const source = cueSources.get(event.voiceSource) ?? "nurse";
+        const parts = cueTypeMap.get(event.phraseToSay) ?? [];
+        const source = cueSourceMap.get(event.voiceSource) ?? "nurse";
         const beat = event.beat - 1;
         for (let i = 0, len = parts.length; i < len; i++)
           cues.push({ time: barTime + (beat + tick * i) * secondsPerBeat, type: parts[i], source });
@@ -95,7 +97,11 @@ export function parseLevel(level: string): { cues: Cue[]; beats: Beat[]; } {
       }
     }
   }
+  cues.sort((a, b) => cueTypes.indexOf(a.type) - cueTypes.indexOf(b.type) || cueSources.indexOf(a.source) - cueSources.indexOf(b.source) || a.time - b.time);
+  unique(cues, (a, b) => a.type === b.type && a.source === b.source && almostEqual(a.time, b.time));
   cues.sort((a, b) => a.time - b.time);
+  beats.sort((a, b) => (a.skipshot ? 1 : 0) - (b.skipshot ? 1 : 0) || a.time - b.time);
+  unique(beats, (a, b) => a.skipshot === b.skipshot && almostEqual(a.time, b.time));
   beats.sort((a, b) => a.time - b.time);
   return { cues, beats };
 }
@@ -200,32 +206,70 @@ export function playCues(cues: readonly Cue[]): ExpectedBeat[] {
         break;
     }
   }
-  return beats.sort((a, b) => a.time - b.time);
+  beats.sort((a, b) => a.time - b.time || a.skips - b.skips);
+  unique(beats, (a, b) => almostEqual(a.time, b.time) && almostEqual(a.skips, b.skips));
+  return beats;
 }
 
-export function checkBeats(beats: Beat[], expected: ExpectedBeat[]): boolean {
+const errorTypes = ["uncued_hit", "skipped_hit", "expected_hit", "overlapping_skipshot"] as const;
+type ErrorType = typeof errorTypes[number];
+
+interface CueError {
+  type: ErrorType;
+  time: number;
+}
+
+export function checkBeats(beats: Beat[], expected: ExpectedBeat[]): CueError[] {
+  const errors: CueError[] = [];
   const hit = beats.map(beat => beat.time);
   const skipped: number[] = [];
   for (const { time, skipshot } of beats) {
-    const matches = expected.filter(p => almostEqual(time, p.time));
-    const count = matches.length;
-    if (count === 0)
-      return false;
-    if (skipshot) {
-      const skips = matches[0].skips;
+    const matches = expected.filter(({ time: expectedTime }) => almostEqual(time, expectedTime));
+    if (matches.length === 0)
+      errors.push({ type: "uncued_hit", time });
+    else if (skipshot) {
+      const first = matches[0].skips;
       for (const match of matches)
-        if (!almostEqual(skips, match.skips))
-          return false;
-      skipped.push(skips);
+        if (!almostEqual(first, match.skips)) {
+          errors.push({ type: "overlapping_skipshot", time });
+          break;
+        }
+      for (const match of matches)
+        skipped.push(match.skips);
     }
   }
-  for (const p of expected)
-    if (includes(hit, p.time, almostEqual) === includes(skipped, p.time, almostEqual))
-      return false;
-  return true;
+  for (const { time } of expected) {
+    const isHit = includes(hit, time, almostEqual);
+    const isSkipped = includes(skipped, time, almostEqual);
+    if (isHit && isSkipped)
+      errors.push({ type: "skipped_hit", time });
+    else if (isHit === isSkipped)
+      errors.push({ type: "expected_hit", time });
+  }
+  errors.sort((a, b) => errorTypes.indexOf(a.type) - errorTypes.indexOf(b.type) || a.time - b.time);
+  unique(errors, (a, b) => a.type === b.type && almostEqual(a.time, b.time));
+  return errors;
 }
 
 if (import.meta.main) {
   const { cues, beats } = parseLevel(await readText(Deno.stdin));
-  console.log(checkBeats(beats, playCues(cues)) ? "true" : "false");
+  const errors = checkBeats(beats, playCues(cues));
+  if (errors.length !== 0) {
+    for (const { type, time } of errors)
+      switch (type) {
+        case "uncued_hit":
+          console.error(`Uncued hit at ${time.toFixed(3)}s`);
+          break;
+        case "skipped_hit":
+          console.error(`Hit at ${time.toFixed(3)}s is skipped by a previous skipshot`);
+          break;
+        case "expected_hit":
+          console.error(`Expected hit at ${time.toFixed(3)}s`);
+          break;
+        case "overlapping_skipshot":
+          console.error(`Overlapping skipshot at ${time.toFixed(3)}s`);
+          break;
+      }
+    Deno.exit(1);
+  }
 }
