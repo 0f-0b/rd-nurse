@@ -29,7 +29,7 @@ if (import.meta.main) {
   });
   if (help) {
     console.log(`
-Usage: deno run ${import.meta.url} [options]
+Usage: rd-nurse [options]
 
 Options:
     -s, --ignore-source
