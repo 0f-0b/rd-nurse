@@ -3,12 +3,11 @@ import type { ExpectedBeat } from "./cue.ts";
 import { playCues } from "./cue.ts";
 import { parse } from "./deps/std/flags.ts";
 import type { Error, ErrorType } from "./error.ts";
-import { sortErrors } from "./error.ts";
 import { readText } from "./io.ts";
-import type { Beat, Cue, CueSource, CueType } from "./level.ts";
+import type { Beat, Cue, CueSource, CueType, Level } from "./level.ts";
 import { parseLevel } from "./level.ts";
 
-export type { Beat, Cue, CueSource, CueType, Error, ErrorType, ExpectedBeat };
+export type { Beat, Cue, CueSource, CueType, Error, ErrorType, ExpectedBeat, Level };
 export { checkBeats, parseLevel, playCues };
 
 if (import.meta.main) {
@@ -50,7 +49,7 @@ The level is read from stdin.
     keepPattern
   });
   const { errors: beatErrors } = checkBeats(beats, expected);
-  const errors = sortErrors([...cueErrors, ...beatErrors]);
+  const errors = [...cueErrors, ...beatErrors];
   if (errors.length !== 0) {
     for (const { type, time } of errors)
       switch (type) {

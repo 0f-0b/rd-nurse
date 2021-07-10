@@ -46,7 +46,12 @@ export interface Beat {
   skipshot: boolean;
 }
 
-export function parseLevel(level: string): { cues: Cue[]; beats: Beat[]; } {
+export interface Level {
+  cues: Cue[];
+  beats: Beat[];
+}
+
+export function parseLevel(level: string): Level {
   const { rows, events } = JSON.parse(level.replace(/^\ufeff/, "").replace(/,\s*(?=[}\]])/g, ""));
   const cues: Cue[] = [];
   const beats: Beat[] = [];
@@ -54,12 +59,16 @@ export function parseLevel(level: string): { cues: Cue[]; beats: Beat[]; } {
   for (const { row, muteBeats } of rows)
     if (!muteBeats)
       enabledRows.add(row);
+  const activeEvents = events
+    .filter((event: { active?: boolean; }) => event.active !== false)
+    .sort((a: { bar: number; }, b: { bar: number; }) => a.bar - b.bar);
   let bar = 1;
   let barTime = 0;
-  let secondsPerBeat = 0.6;
+  let secondsPerBeat = 60 / (activeEvents.find((event: { type: string; }) => event.type === "PlaySong")?.bpm ?? 100);
   let crotchetsPerBar = 8;
-  // deno-lint-ignore no-explicit-any
-  for (const event of events.filter((event: any) => (event.active ?? true) && !event.if && !event.tag).sort((a: any, b: any) => a.bar - b.bar)) {
+  for (const event of activeEvents) {
+    if (event.if || event.tag)
+      continue;
     barTime += (event.bar - bar) * crotchetsPerBar * secondsPerBeat;
     bar = event.bar;
     switch (event.type) {
