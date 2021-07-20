@@ -53,15 +53,6 @@ The level is read from stdin.
   if (errors.length !== 0) {
     for (const { type, time } of errors)
       switch (type) {
-        case "uncued_hit":
-          console.error(`Uncued hit at ${time.toFixed(3)}s`);
-          break;
-        case "skipped_hit":
-          console.error(`Hit at ${time.toFixed(3)}s is skipped by a previous skipshot`);
-          break;
-        case "missing_hit":
-          console.error(`Missing hit at ${time.toFixed(3)}s`);
-          break;
         case "unrecognized_normal":
           console.error(`Unrecognized oneshot cue at ${time.toFixed(3)}s`);
           break;
@@ -73,6 +64,21 @@ The level is read from stdin.
           break;
         case "overlapping_skipshot":
           console.error(`Overlapping skipshot at ${time.toFixed(3)}s`);
+          break;
+        case "unexpected_freezeshot":
+          console.error(`Unexpected freezeshot at ${time.toFixed(3)}s`);
+          break;
+        case "overlapping_freezeshot":
+          console.error(`Overlapping freezeshot at ${time.toFixed(3)}s`);
+          break;
+        case "uncued_hit":
+          console.error(`Uncued hit at ${time.toFixed(3)}s`);
+          break;
+        case "skipped_hit":
+          console.error(`Hit at ${time.toFixed(3)}s is skipped by a previous skipshot`);
+          break;
+        case "missing_hit":
+          console.error(`Missing hit at ${time.toFixed(3)}s`);
           break;
         default:
           throw ((_: never) => new TypeError("Non-exhaustive switch"))(type);

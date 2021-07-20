@@ -2,7 +2,7 @@ import { almostEqual, unique } from "./util.ts";
 
 export type CueType = typeof cueTypes[number];
 const cueTypes = ["get", "set", "go", "stop", 1, 2, 3, 4, 5, 6, 7, 8] as const;
-const cueTypeMap = new Map<string, CueType[]>([
+const cueTypeMap = new Map<string, (CueType | undefined)[]>([
   ["SayReaDyGetSetGoNew", ["get", "set", "get", "set", "go"]],
   ["SayGetSetGo", ["get", "set", "go"]],
   ["SayReaDyGetSetOne", ["get", "set", "get", "set", 1]],
@@ -22,8 +22,7 @@ const cueTypeMap = new Map<string, CueType[]>([
   ["Count6", [6]],
   ["Count7", [7]],
   ["Count8", [8]],
-  ["SayReadyGetSetGo", ["get", "set", "get", "set", "go"]],
-  ["JustSayReady", ["get", "set"]]
+  ["SayReadyGetSetGo", [undefined, undefined, "get", "set", "go"]]
 ]);
 export type CueSource = typeof cueSources[number];
 const cueSources = ["nurse", "ian"] as const;
@@ -44,6 +43,8 @@ export interface Cue {
 export interface Beat {
   time: number;
   skipshot: boolean;
+  start: number;
+  delay: number;
 }
 
 export interface Level {
@@ -86,8 +87,11 @@ export function parseLevel(level: string): Level {
         const parts = cueTypeMap.get(event.phraseToSay) ?? [];
         const source = cueSourceMap.get(event.voiceSource) ?? "nurse";
         const beat = event.beat - 1;
-        for (let i = 0, len = parts.length; i < len; i++)
-          cues.push({ time: barTime + (beat + tick * i) * secondsPerBeat, type: parts[i], source });
+        for (let i = 0, len = parts.length; i < len; i++) {
+          const part = parts[i];
+          if (part !== undefined)
+            cues.push({ time: barTime + (beat + tick * i) * secondsPerBeat, type: part, source });
+        }
         break;
       }
       case "AddOneshotBeat": {
@@ -98,9 +102,15 @@ export function parseLevel(level: string): Level {
         const interval = event.interval ?? 0;
         const delay = event.delay ?? 0;
         const skipshot = event.skipshot ?? false;
-        const beat = event.beat - 1 + (delay ? interval - delay : tick);
+        const startBeat = event.beat - 1;
+        const hitBeat = startBeat + (delay ? interval - delay : tick);
         for (let i = 0; i <= loops; i++)
-          beats.push({ time: barTime + (beat + interval * i) * secondsPerBeat, skipshot: skipshot && i === loops });
+          beats.push({
+            time: barTime + (hitBeat + interval * i) * secondsPerBeat,
+            skipshot: skipshot && i === loops,
+            start: barTime + (startBeat + interval * i) * secondsPerBeat,
+            delay: delay * secondsPerBeat
+          });
         break;
       }
     }

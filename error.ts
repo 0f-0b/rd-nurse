@@ -1,6 +1,6 @@
 import { almostEqual, unique } from "./util.ts";
 
-export const errorTypes = ["uncued_hit", "skipped_hit", "missing_hit", "unrecognized_normal", "unrecognized_square", "unexpected_skipshot", "overlapping_skipshot"] as const;
+export const errorTypes = ["unrecognized_normal", "unrecognized_square", "unexpected_skipshot", "overlapping_skipshot", "unexpected_freezeshot", "overlapping_freezeshot", "uncued_hit", "skipped_hit", "missing_hit"] as const;
 export type ErrorType = typeof errorTypes[number];
 
 export interface Error {

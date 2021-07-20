@@ -44,7 +44,8 @@ export type CueResult<T> =
 
 export interface ExpectedBeat {
   time: number;
-  skips: number;
+  prev: number;
+  next: number;
 }
 
 export function* playNormal(source: Source, endTime: number): Generator<ExpectedBeat, void, unknown> {
@@ -55,11 +56,10 @@ export function* playNormal(source: Source, endTime: number): Generator<Expected
   if (interval <= 0 || offsets.length === 0)
     return;
   const repeated = repeat(offsets, (value, group) => startTime + group * interval + value);
-  let [cur, next] = [0, repeated.next().value];
+  let [prev, cur, next] = [-1, -1, repeated.next().value];
   while (next < endTime || almostEqual(next, endTime)) {
-    cur = next;
-    next = repeated.next().value;
-    yield { time: cur, skips: next };
+    [prev, cur, next] = [cur, next, repeated.next().value];
+    yield { time: cur, prev, next };
   }
 }
 
@@ -68,7 +68,7 @@ export function* playSquare(source: Source, startTime: number, count: number): G
   if (interval <= 0)
     return;
   for (let i = 1; i <= count; i++)
-    yield { time: startTime + interval * i, skips: -1 };
+    yield { time: startTime + interval * i, prev: -1, next: -1 };
 }
 
 function checkNormalCue(cue: PatternCue[], time: number): CueResult<NormalPattern> {
@@ -184,8 +184,8 @@ export function playCues(cues: readonly Cue[], { ignoreSource, keepPattern }: Pl
         break;
     }
   }
-  expected.sort((a, b) => a.time - b.time || a.skips - b.skips);
-  unique(expected, (a, b) => almostEqual(a.time, b.time) && almostEqual(a.skips, b.skips));
+  expected.sort((a, b) => a.time - b.time || a.next - b.next);
+  unique(expected, (a, b) => almostEqual(a.time, b.time) && almostEqual(a.next, b.next));
   sortErrors(errors);
   return { expected, errors };
 }

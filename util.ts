@@ -1,5 +1,5 @@
 export function almostEqual(a: number, b: number): boolean {
-  return Math.abs(a - b) * 4096 < Math.abs(a) + Math.abs(b);
+  return Math.abs(a - b) * 4096 <= Math.abs(a) + Math.abs(b);
 }
 
 export function includes<T, U = T>(arr: readonly T[], value: U, equal: (a: T, b: U) => boolean): boolean {
