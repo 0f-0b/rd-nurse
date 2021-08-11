@@ -53,7 +53,7 @@ export interface Level {
 }
 
 export function parseLevel(level: string): Level {
-  const { rows, events } = JSON.parse(level.replace(/^\ufeff/, "").replace(/,\s*(?=[}\]])/g, ""));
+  const { rows, events } = JSON.parse(level.replace(/^\ufeff/, "").replace(/\r|,\s*(?=[}\]])/g, ""));
   const cues: Cue[] = [];
   const beats: Beat[] = [];
   const enabledRows = new Set<number>();
