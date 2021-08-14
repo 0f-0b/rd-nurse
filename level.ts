@@ -1,7 +1,7 @@
 import { almostEqual, unique } from "./util.ts";
 
 export type CueType = typeof cueTypes[number];
-const cueTypes = [1, 2, 3, 4, 5, 6, 7, 8, "go", "stop", "get", "set"] as const;
+const cueTypes = [1, "go", "stop", "get", "set"] as const;
 const cueTypeMap = new Map<string, (CueType | undefined)[]>([
   ["SayReaDyGetSetGoNew", ["get", "set", "get", "set", "go"]],
   ["SayGetSetGo", ["get", "set", "go"]],
@@ -15,13 +15,6 @@ const cueTypeMap = new Map<string, (CueType | undefined)[]>([
   ["JustSayStop", ["stop"]],
   ["JustSayAndStop", ["stop"]],
   ["Count1", [1]],
-  ["Count2", [2]],
-  ["Count3", [3]],
-  ["Count4", [4]],
-  ["Count5", [5]],
-  ["Count6", [6]],
-  ["Count7", [7]],
-  ["Count8", [8]],
   ["SayReadyGetSetGo", [undefined, undefined, "get", "set", "go"]]
 ]);
 export type CueSource = typeof cueSources[number];

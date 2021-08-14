@@ -1,14 +1,43 @@
+import { CheckBeatsResult } from "./beat.ts";
 import { checkBeats } from "./beat.ts";
-import type { ExpectedBeat } from "./cue.ts";
+import type { ExpectedBeat, PlayCuesOptions, PlayCuesResult } from "./cue.ts";
 import { playCues } from "./cue.ts";
 import { parse } from "./deps/std/flags.ts";
-import type { Error, ErrorType } from "./error.ts";
 import { readText } from "./io.ts";
 import type { Beat, Cue, CueSource, CueType, Level } from "./level.ts";
 import { parseLevel } from "./level.ts";
 
-export type { Beat, Cue, CueSource, CueType, Error, ErrorType, ExpectedBeat, Level };
+export type { Beat, CheckBeatsResult, Cue, CueSource, CueType, ExpectedBeat, Level, PlayCuesOptions, PlayCuesResult };
 export { checkBeats, parseLevel, playCues };
+
+export interface CheckLevelResult {
+  invalidNormalCues: number[];
+  invalidSquareCues: number[];
+  unexpectedSkipshots: number[];
+  overlappingSkipshots: number[];
+  unexpectedFreezeshots: number[];
+  overlappingFreezeshots: number[];
+  uncuedHits: number[];
+  skippedHits: number[];
+  missingHits: number[];
+}
+
+export function checkLevel(level: string, options?: PlayCuesOptions): CheckLevelResult {
+  const { cues, beats } = parseLevel(level);
+  const { expected, invalidNormalCues, invalidSquareCues } = playCues(cues, options);
+  const { unexpectedSkipshots, overlappingSkipshots, unexpectedFreezeshots, overlappingFreezeshots, uncuedHits, skippedHits, missingHits } = checkBeats(beats, expected);
+  return {
+    invalidNormalCues,
+    invalidSquareCues,
+    unexpectedSkipshots,
+    overlappingSkipshots,
+    unexpectedFreezeshots,
+    overlappingFreezeshots,
+    uncuedHits,
+    skippedHits,
+    missingHits
+  };
+}
 
 if (import.meta.main) {
   const {
@@ -43,46 +72,44 @@ The level is read from stdin.
 `.substring(1));
     Deno.exit(0);
   }
-  const { cues, beats } = parseLevel(await readText(Deno.stdin));
-  const { expected, errors: cueErrors } = playCues(cues, {
-    ignoreSource,
-    keepPattern
-  });
-  const { errors: beatErrors } = checkBeats(beats, expected);
-  const errors = [...cueErrors, ...beatErrors];
-  if (errors.length !== 0) {
-    for (const { type, time } of errors)
-      switch (type) {
-        case "unrecognized_normal":
-          console.error(`Unrecognized oneshot cue at ${time.toFixed(3)}s`);
-          break;
-        case "unrecognized_square":
-          console.error(`Unrecognized squareshot cue at ${time.toFixed(3)}s`);
-          break;
-        case "unexpected_skipshot":
-          console.error(`Unexpected skipshot at ${time.toFixed(3)}s`);
-          break;
-        case "overlapping_skipshot":
-          console.error(`Overlapping skipshot at ${time.toFixed(3)}s`);
-          break;
-        case "unexpected_freezeshot":
-          console.error(`Unexpected freezeshot at ${time.toFixed(3)}s`);
-          break;
-        case "overlapping_freezeshot":
-          console.error(`Overlapping freezeshot at ${time.toFixed(3)}s`);
-          break;
-        case "uncued_hit":
-          console.error(`Uncued hit at ${time.toFixed(3)}s`);
-          break;
-        case "skipped_hit":
-          console.error(`Hit at ${time.toFixed(3)}s is skipped by a previous skipshot`);
-          break;
-        case "missing_hit":
-          console.error(`Missing hit at ${time.toFixed(3)}s`);
-          break;
-        default:
-          throw ((_: never) => new TypeError("Non-exhaustive switch"))(type);
-      }
+  const {
+    invalidNormalCues,
+    invalidSquareCues,
+    unexpectedSkipshots,
+    overlappingSkipshots,
+    unexpectedFreezeshots,
+    overlappingFreezeshots,
+    uncuedHits,
+    skippedHits,
+    missingHits
+  } = checkLevel(await readText(Deno.stdin), { ignoreSource, keepPattern });
+  if (invalidNormalCues.length !== 0
+    || invalidSquareCues.length !== 0
+    || unexpectedSkipshots.length !== 0
+    || overlappingSkipshots.length !== 0
+    || unexpectedFreezeshots.length !== 0
+    || overlappingFreezeshots.length !== 0
+    || uncuedHits.length !== 0
+    || skippedHits.length !== 0
+    || missingHits.length !== 0) {
+    for (const time of invalidNormalCues)
+      console.error(`Invalid oneshot cue at ${time.toFixed(3)}s`);
+    for (const time of invalidSquareCues)
+      console.error(`Invalid squareshot cue at ${time.toFixed(3)}s`);
+    for (const time of unexpectedSkipshots)
+      console.error(`Unexpected skipshot at ${time.toFixed(3)}s`);
+    for (const time of overlappingSkipshots)
+      console.error(`Overlapping skipshot at ${time.toFixed(3)}s`);
+    for (const time of unexpectedFreezeshots)
+      console.error(`Unexpected freezeshot at ${time.toFixed(3)}s`);
+    for (const time of overlappingFreezeshots)
+      console.error(`Overlapping freezeshot at ${time.toFixed(3)}s`);
+    for (const time of uncuedHits)
+      console.error(`Uncued hit at ${time.toFixed(3)}s`);
+    for (const time of skippedHits)
+      console.error(`Hit at ${time.toFixed(3)}s is skipped by a previous skipshot`);
+    for (const time of missingHits)
+      console.error(`Missing hit at ${time.toFixed(3)}s`);
     Deno.exit(1);
   }
 }

@@ -1,43 +1,52 @@
-import type { Error } from "./error.ts";
-import { sortErrors } from "./error.ts";
 import type { Cue } from "./level.ts";
 import { almostEqual, repeat, unique } from "./util.ts";
 
-export interface NormalPattern {
+export interface PlayCuesOptions {
+  ignoreSource?: boolean;
+  keepPattern?: boolean;
+}
+
+export interface PlayCuesResult {
+  expected: ExpectedBeat[];
+  invalidNormalCues: number[];
+  invalidSquareCues: number[];
+}
+
+interface NormalPattern {
   interval: number;
   offsets: number[];
 }
 
-export interface SquarePattern {
+interface SquarePattern {
   interval: number;
 }
 
-export interface PatternCue {
+interface PatternCue {
   type: "get" | "set";
   time: number;
 }
 
-export interface Source {
+interface Source {
   startTime: number;
   normal: NormalPattern;
   square: SquarePattern;
   next: PatternCue[];
 }
 
-export interface ReplaceResult<T> {
+interface ReplaceResult<T> {
   type: "replace";
   pattern: T;
 }
 
-export interface KeepResult {
+interface KeepResult {
   type: "keep";
 }
 
-export interface ErrorResult {
+interface ErrorResult {
   type: "error";
 }
 
-export type CueResult<T> =
+type CueResult<T> =
   | ReplaceResult<T>
   | KeepResult
   | ErrorResult;
@@ -48,7 +57,7 @@ export interface ExpectedBeat {
   next: number;
 }
 
-export function* playNormal(source: Source, endTime: number): Generator<ExpectedBeat, void, unknown> {
+function* playNormal(source: Source, endTime: number): Generator<ExpectedBeat, void, unknown> {
   const startTime = source.startTime;
   if (startTime < 0)
     return;
@@ -63,7 +72,7 @@ export function* playNormal(source: Source, endTime: number): Generator<Expected
   }
 }
 
-export function* playSquare(source: Source, startTime: number, count: number): Generator<ExpectedBeat, void, unknown> {
+function* playSquare(source: Source, startTime: number, count: number): Generator<ExpectedBeat, void, unknown> {
   const { interval } = source.square;
   if (interval <= 0)
     return;
@@ -120,14 +129,12 @@ function checkSquareCue(cue: PatternCue[], time: number): CueResult<SquarePatter
   };
 }
 
-export interface PlayCueOptions {
-  ignoreSource?: boolean;
-  keepPattern?: boolean;
-}
-
-export function playCues(cues: readonly Cue[], { ignoreSource, keepPattern }: PlayCueOptions = {}): { expected: ExpectedBeat[]; errors: Error[]; } {
-  const expected: ExpectedBeat[] = [];
-  const errors: Error[] = [];
+export function playCues(cues: readonly Cue[], { ignoreSource, keepPattern }: PlayCuesOptions = {}): PlayCuesResult {
+  const result: PlayCuesResult = {
+    expected: [],
+    invalidNormalCues: [],
+    invalidSquareCues: []
+  };
   const sources = new Map<Cue["source"], Source>();
   for (const cue of cues) {
     const time = cue.time;
@@ -149,43 +156,44 @@ export function playCues(cues: readonly Cue[], { ignoreSource, keepPattern }: Pl
         break;
       case "go":
         for (const beat of playNormal(source, time))
-          expected.push(beat);
+          result.expected.push(beat);
         if (source.next.length !== 0) {
-          const result = checkNormalCue(source.next, time);
-          if (result.type === "error")
-            errors.push({ type: "unrecognized_normal", time });
-          else if (result.type === "replace")
-            source.normal = result.pattern;
+          const cueResult = checkNormalCue(source.next, time);
+          if (cueResult.type === "error")
+            result.invalidNormalCues.push(time);
+          else if (cueResult.type === "replace")
+            source.normal = cueResult.pattern;
           source.next = [];
         }
         source.startTime = time;
         break;
       case "stop":
         for (const beat of playNormal(source, time))
-          expected.push(beat);
+          result.expected.push(beat);
         source.startTime = -1;
         break;
       default:
         if (!keepPattern) {
           for (const beat of playNormal(source, time))
-            expected.push(beat);
+            result.expected.push(beat);
           source.startTime = -1;
         }
         if (source.next.length !== 0) {
-          const result = checkSquareCue(source.next, time);
-          if (result.type === "error")
-            errors.push({ type: "unrecognized_square", time });
-          else if (result.type === "replace")
-            source.square = result.pattern;
+          const cueResult = checkSquareCue(source.next, time);
+          if (cueResult.type === "error")
+            result.invalidSquareCues.push(time);
+          else if (cueResult.type === "replace")
+            source.square = cueResult.pattern;
           source.next = [];
         }
         for (const beat of playSquare(source, time, cue.type))
-          expected.push(beat);
+          result.expected.push(beat);
         break;
     }
   }
-  expected.sort((a, b) => a.time - b.time || a.next - b.next);
-  unique(expected, (a, b) => almostEqual(a.time, b.time) && almostEqual(a.next, b.next));
-  sortErrors(errors);
-  return { expected, errors };
+  unique(result.expected.sort((a, b) => a.time - b.time || a.next - b.next),
+    (a, b) => almostEqual(a.time, b.time) && almostEqual(a.next, b.next));
+  unique(result.invalidNormalCues.sort((a, b) => a - b), almostEqual);
+  unique(result.invalidSquareCues.sort((a, b) => a - b), almostEqual);
+  return result;
 }

@@ -1,8 +1,16 @@
 import type { ExpectedBeat } from "./cue.ts";
-import type { Error } from "./error.ts";
-import { sortErrors } from "./error.ts";
 import type { Beat } from "./level.ts";
-import { almostEqual, includes } from "./util.ts";
+import { almostEqual, includes, unique } from "./util.ts";
+
+export interface CheckBeatsResult {
+  unexpectedSkipshots: number[];
+  overlappingSkipshots: number[];
+  unexpectedFreezeshots: number[];
+  overlappingFreezeshots: number[];
+  uncuedHits: number[];
+  skippedHits: number[];
+  missingHits: number[];
+}
 
 interface NormalResult {
   type: "normal";
@@ -11,20 +19,12 @@ interface NormalResult {
   skips: number | undefined;
 }
 
-interface UncuedResult {
-  type: "uncued";
+interface ErrorResult {
+  type: "uncued" | "unexpected_freezeshot" | "unexpected_skipshot" | "overlapping_skipshot";
   time: number;
 }
 
-interface ErrorResult {
-  type: "error";
-  error: Error;
-}
-
-type BeatResult =
-  | NormalResult
-  | UncuedResult
-  | ErrorResult;
+type BeatResult = NormalResult | ErrorResult;
 
 function addBeat({ time, skipshot, start, delay }: Beat, expected: ExpectedBeat[]): BeatResult {
   const matches = expected.filter(({ time: expectedTime }) => almostEqual(time, expectedTime));
@@ -34,61 +34,84 @@ function addBeat({ time, skipshot, start, delay }: Beat, expected: ExpectedBeat[
     const prev = matches
       .map(match => match.prev)
       .filter(x => x !== -1);
-    if (!includes(prev, start, almostEqual))
-      return { type: "error", error: { type: "unexpected_freezeshot", time } };
+    if (!includes(prev, start, almostEqual)) {
+      return { type: "unexpected_freezeshot", time };
+    }
   }
   if (skipshot) {
     const next = matches
       .map(match => match.next)
       .filter(x => x !== -1);
-    if (next.length === 0)
-      return { type: "error", error: { type: "unexpected_skipshot", time } };
+    if (next.length === 0) {
+      return { type: "unexpected_skipshot", time };
+    }
     const first = next[0];
-    if (!next.every(x => almostEqual(first, x)))
-      return { type: "error", error: { type: "overlapping_skipshot", time } };
+    if (!next.every(x => almostEqual(first, x))) {
+      return { type: "overlapping_skipshot", time };
+    }
     return { type: "normal", time, delay, skips: first };
   }
   return { type: "normal", time, delay, skips: undefined };
 }
 
-export function checkBeats(beats: Beat[], expected: ExpectedBeat[]): { errors: Error[]; } {
+export function checkBeats(beats: Beat[], expected: ExpectedBeat[]): CheckBeatsResult {
   const hit: { time: number; delay: number; }[] = [];
   const skipped: number[] = [];
   const uncued: number[] = [];
-  const errors: Error[] = [];
+  const result: CheckBeatsResult = {
+    unexpectedSkipshots: [],
+    overlappingSkipshots: [],
+    unexpectedFreezeshots: [],
+    overlappingFreezeshots: [],
+    uncuedHits: [],
+    skippedHits: [],
+    missingHits: []
+  };
   for (const beat of beats) {
-    const result = addBeat(beat, expected);
-    switch (result.type) {
+    const beatResult = addBeat(beat, expected);
+    switch (beatResult.type) {
       case "normal": {
-        hit.push({ time: result.time, delay: result.delay });
-        if (result.skips !== undefined)
-          skipped.push(result.skips);
+        hit.push({ time: beatResult.time, delay: beatResult.delay });
+        if (beatResult.skips !== undefined)
+          skipped.push(beatResult.skips);
         break;
       }
       case "uncued":
-        uncued.push(result.time);
+        uncued.push(beatResult.time);
         break;
-      case "error":
-        errors.push(result.error);
+      case "unexpected_freezeshot":
+        result.unexpectedFreezeshots.push(beatResult.time);
+        break;
+      case "unexpected_skipshot":
+        result.unexpectedSkipshots.push(beatResult.time);
+        break;
+      case "overlapping_skipshot":
+        result.overlappingSkipshots.push(beatResult.time);
         break;
       default:
-        throw ((_: never) => new TypeError("Non-exhaustive switch"))(result);
+        throw ((_: never) => new TypeError("Non-exhaustive switch"))(beatResult);
     }
   }
   for (const { time, delay } of hit)
     if (hit.some(x => almostEqual(x.time, time) && !almostEqual(x.delay, delay)))
-      errors.push({ type: "overlapping_freezeshot", time });
+      result.overlappingFreezeshots.push(time);
   for (const time of uncued)
     if (!hit.some(x => almostEqual(x.time + x.delay, time)))
-      errors.push({ type: "uncued_hit", time });
+      result.uncuedHits.push(time);
   for (const { time } of expected) {
     const isHit = hit.some(x => almostEqual(x.time, time));
     const isSkipped = includes(skipped, time, almostEqual);
     if (isHit && isSkipped)
-      errors.push({ type: "skipped_hit", time });
+      result.skippedHits.push(time);
     else if (isHit === isSkipped)
-      errors.push({ type: "missing_hit", time });
+      result.missingHits.push(time);
   }
-  sortErrors(errors);
-  return { errors };
+  unique(result.unexpectedSkipshots.sort((a, b) => a - b), almostEqual);
+  unique(result.overlappingSkipshots.sort((a, b) => a - b), almostEqual);
+  unique(result.unexpectedFreezeshots.sort((a, b) => a - b), almostEqual);
+  unique(result.overlappingFreezeshots.sort((a, b) => a - b), almostEqual);
+  unique(result.uncuedHits.sort((a, b) => a - b), almostEqual);
+  unique(result.skippedHits.sort((a, b) => a - b), almostEqual);
+  unique(result.missingHits.sort((a, b) => a - b), almostEqual);
+  return result;
 }
