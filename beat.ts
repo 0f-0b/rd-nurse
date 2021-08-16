@@ -34,21 +34,18 @@ function addBeat({ time, skipshot, start, delay }: Beat, expected: ExpectedBeat[
     const prev = matches
       .map(match => match.prev)
       .filter(x => x !== -1);
-    if (!includes(prev, start, almostEqual)) {
+    if (!includes(prev, start, almostEqual))
       return { type: "unexpected_freezeshot", time };
-    }
   }
   if (skipshot) {
     const next = matches
       .map(match => match.next)
       .filter(x => x !== -1);
-    if (next.length === 0) {
+    if (next.length === 0)
       return { type: "unexpected_skipshot", time };
-    }
     const first = next[0];
-    if (!next.every(x => almostEqual(first, x))) {
+    if (!next.every(x => almostEqual(first, x)))
       return { type: "overlapping_skipshot", time };
-    }
     return { type: "normal", time, delay, skips: first };
   }
   return { type: "normal", time, delay, skips: undefined };

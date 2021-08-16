@@ -82,34 +82,28 @@ The level is read from stdin.
     uncuedHits,
     skippedHits,
     missingHits
-  } = checkLevel(await readText(Deno.stdin), { ignoreSource, keepPattern });
-  if (invalidNormalCues.length !== 0
-    || invalidSquareCues.length !== 0
-    || unexpectedSkipshots.length !== 0
-    || overlappingSkipshots.length !== 0
-    || unexpectedFreezeshots.length !== 0
-    || overlappingFreezeshots.length !== 0
-    || uncuedHits.length !== 0
-    || skippedHits.length !== 0
-    || missingHits.length !== 0) {
-    for (const time of invalidNormalCues)
-      console.error(`Invalid oneshot cue at ${time.toFixed(3)}s`);
-    for (const time of invalidSquareCues)
-      console.error(`Invalid squareshot cue at ${time.toFixed(3)}s`);
-    for (const time of unexpectedSkipshots)
-      console.error(`Unexpected skipshot at ${time.toFixed(3)}s`);
-    for (const time of overlappingSkipshots)
-      console.error(`Overlapping skipshot at ${time.toFixed(3)}s`);
-    for (const time of unexpectedFreezeshots)
-      console.error(`Unexpected freezeshot at ${time.toFixed(3)}s`);
-    for (const time of overlappingFreezeshots)
-      console.error(`Overlapping freezeshot at ${time.toFixed(3)}s`);
-    for (const time of uncuedHits)
-      console.error(`Uncued hit at ${time.toFixed(3)}s`);
-    for (const time of skippedHits)
-      console.error(`Hit at ${time.toFixed(3)}s is skipped by a previous skipshot`);
-    for (const time of missingHits)
-      console.error(`Missing hit at ${time.toFixed(3)}s`);
-    Deno.exit(1);
+  } = checkLevel(await readText(Deno.stdin), {
+    ignoreSource,
+    keepPattern
+  });
+  const errorTypes: [number[], string][] = [
+    [invalidNormalCues, "Invalid oneshot cue"],
+    [invalidSquareCues, "Invalid squareshot cue"],
+    [unexpectedSkipshots, "Unexpected skipshot"],
+    [overlappingSkipshots, "Overlapping skipshot"],
+    [unexpectedFreezeshots, "Unexpected freezeshot"],
+    [overlappingFreezeshots, "Overlapping freezeshot"],
+    [uncuedHits, "Uncued hit"],
+    [skippedHits, "Skipped hit"],
+    [missingHits, "Missing hit"]
+  ];
+  let errors = 0;
+  for (const [pos, desc] of errorTypes) {
+    if (pos.length === 0)
+      continue;
+    errors += pos.length;
+    console.log(`${desc}: ${pos.map(time => `${time.toFixed(3)}s`).join(", ")}`);
   }
+  if (errors !== 0)
+    Deno.exit(1);
 }
