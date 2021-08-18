@@ -106,6 +106,10 @@ export function parseLevel(level: string): Level {
           });
         break;
       }
+      case "FinishLevel":
+        for (const source of cueSources)
+          cues.push({ time: barTime + event.beat * secondsPerBeat, type: "stop", source });
+        break;
     }
   }
   cues.sort((a, b) => cueTypes.indexOf(a.type) - cueTypes.indexOf(b.type) || cueSources.indexOf(a.source) - cueSources.indexOf(b.source) || a.time - b.time);
