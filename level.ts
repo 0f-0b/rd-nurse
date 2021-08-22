@@ -108,7 +108,7 @@ export function parseLevel(level: string): Level {
       }
       case "FinishLevel":
         for (const source of cueSources)
-          cues.push({ time: barTime + event.beat * secondsPerBeat, type: "stop", source });
+          cues.push({ time: barTime + (event.beat - 1) * secondsPerBeat, type: "stop", source });
         break;
     }
   }
