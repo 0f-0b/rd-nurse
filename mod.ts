@@ -6,11 +6,15 @@ import { parse } from "./deps/std/flags.ts";
 import { readText } from "./io.ts";
 import type { Beat, Cue, CueSource, CueType, Level } from "./level.ts";
 import { parseLevel } from "./level.ts";
+import type { TimeCache } from "./time.ts";
+import { barToBeat, beatToBar, beatToTime, timeToBeat } from "./time.ts";
 
-export type { Beat, CheckBeatsResult, Cue, CueSource, CueType, ExpectedBeat, Level, PlayCuesOptions, PlayCuesResult };
-export { checkBeats, parseLevel, playCues };
+export type { Beat, CheckBeatsResult, Cue, CueSource, CueType, ExpectedBeat, Level, PlayCuesOptions, PlayCuesResult, TimeCache };
+export { barToBeat, beatToBar, beatToTime, checkBeats, parseLevel, playCues, timeToBeat };
 
 export interface CheckLevelResult {
+  barCache: TimeCache;
+  beatCache: TimeCache;
   invalidNormalCues: number[];
   invalidSquareCues: number[];
   unexpectedSkipshots: number[];
@@ -23,10 +27,12 @@ export interface CheckLevelResult {
 }
 
 export function checkLevel(level: string, options?: PlayCuesOptions): CheckLevelResult {
-  const { cues, beats } = parseLevel(level);
+  const { barCache, beatCache, cues, beats } = parseLevel(level);
   const { expected, invalidNormalCues, invalidSquareCues } = playCues(cues, options);
   const { unexpectedSkipshots, overlappingSkipshots, unexpectedFreezeshots, overlappingFreezeshots, uncuedHits, skippedHits, missingHits } = checkBeats(beats, expected);
   return {
+    barCache,
+    beatCache,
     invalidNormalCues,
     invalidSquareCues,
     unexpectedSkipshots,

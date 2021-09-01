@@ -1,3 +1,5 @@
+import type { TimeCache } from "./time.ts";
+import { barToBeat, beatToTime, initBarCache, initBeatCache } from "./time.ts";
 import { almostEqual, unique } from "./util.ts";
 
 export type CueType = typeof cueTypes[number];
@@ -41,6 +43,8 @@ export interface Beat {
 }
 
 export interface Level {
+  barCache: TimeCache;
+  beatCache: TimeCache;
   cues: Cue[];
   beats: Beat[];
 }
@@ -56,34 +60,22 @@ export function parseLevel(level: string): Level {
   const activeEvents = events
     .filter((event: { active?: boolean; }) => event.active !== false)
     .sort((a: { bar: number; }, b: { bar: number; }) => a.bar - b.bar);
-  let bar = 1;
-  let barTime = 0;
-  let secondsPerBeat = 60 / (activeEvents.find((event: { type: string; }) => event.type === "PlaySong")?.bpm ?? 100);
-  let crotchetsPerBar = 8;
+  const barCache = initBarCache(activeEvents);
+  const beatCache = initBeatCache(barCache, activeEvents);
   for (const event of activeEvents) {
     if (event.if || event.tag)
       continue;
-    barTime += (event.bar - bar) * crotchetsPerBar * secondsPerBeat;
-    bar = event.bar;
+    const beat = barToBeat(barCache, event.bar - 1) + (event.beat - 1);
+    const [time, spb] = beatToTime(beatCache, beat);
     switch (event.type) {
-      case "PlaySong":
-        secondsPerBeat = 60 / event.bpm;
-        break;
-      case "SetCrotchetsPerBar":
-        crotchetsPerBar = event.crotchetsPerBar;
-        break;
-      case "SetBeatsPerMinute":
-        secondsPerBeat = 60 / event.beatsPerMinute;
-        break;
       case "SayReadyGetSetGo": {
         const tick = event.tick;
         const parts = cueTypeMap.get(event.phraseToSay) ?? [];
         const source = cueSourceMap.get(event.voiceSource) ?? "nurse";
-        const beat = event.beat - 1;
         for (let i = 0, len = parts.length; i < len; i++) {
           const part = parts[i];
           if (part !== undefined)
-            cues.push({ time: barTime + (beat + tick * i) * secondsPerBeat, type: part, source });
+            cues.push({ time: time + (tick * i) * spb, type: part, source });
         }
         break;
       }
@@ -95,21 +87,20 @@ export function parseLevel(level: string): Level {
         const interval = event.interval ?? 0;
         const delay = event.delay ?? 0;
         const skipshot = event.skipshot ?? false;
-        const startBeat = event.beat - 1;
-        const hitBeat = startBeat + (delay ? interval - delay : tick);
         for (let i = 0; i <= loops; i++)
           beats.push({
-            time: barTime + (hitBeat + interval * i) * secondsPerBeat,
+            time: time + (interval * i + (delay ? interval - delay : tick)) * spb,
             skipshot: skipshot && i === loops,
-            start: barTime + (startBeat + interval * i) * secondsPerBeat,
-            delay: delay * secondsPerBeat
+            start: time + (interval * i) * spb,
+            delay: delay * spb
           });
         break;
       }
-      case "FinishLevel":
+      case "FinishLevel": {
         for (const source of cueSources)
-          cues.push({ time: barTime + (event.beat - 1) * secondsPerBeat, type: "stop", source });
+          cues.push({ time, type: "stop", source });
         break;
+      }
     }
   }
   cues.sort((a, b) => cueTypes.indexOf(a.type) - cueTypes.indexOf(b.type) || cueSources.indexOf(a.source) - cueSources.indexOf(b.source) || a.time - b.time);
@@ -118,5 +109,5 @@ export function parseLevel(level: string): Level {
   beats.sort((a, b) => (a.skipshot ? 1 : 0) - (b.skipshot ? 1 : 0) || a.time - b.time);
   unique(beats, (a, b) => a.skipshot === b.skipshot && almostEqual(a.time, b.time));
   beats.sort((a, b) => a.time - b.time);
-  return { cues, beats };
+  return { barCache, beatCache, cues, beats };
 }

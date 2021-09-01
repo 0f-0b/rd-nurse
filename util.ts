@@ -20,6 +20,19 @@ export function unique<T>(arr: T[], equal: (a: T, b: T) => boolean): T[] {
   return arr;
 }
 
+export function partitionPoint<T>(arr: readonly T[], pred: (value: T, index: number, arr: readonly T[]) => boolean): number {
+  let l = 0;
+  let r = arr.length;
+  while (l < r) {
+    const m = (l + r) >>> 1;
+    if (pred(arr[m], m, arr))
+      l = m + 1;
+    else
+      r = m;
+  }
+  return l;
+}
+
 export function* repeat<T, U>(arr: readonly T[], mapper: (value: T, group: number) => U): Generator<U, never, unknown> {
   for (let i = 0; ; i++)
     for (const elem of arr)
