@@ -49,16 +49,19 @@ if (import.meta.main) {
   const {
     "ignore-source": ignoreSource,
     "keep-pattern": keepPattern,
+    "triangleshot": triangleshot,
     "help": help
   } = parse(Deno.args, {
     boolean: [
       "ignore-source",
       "keep-pattern",
+      "triangleshot",
       "help"
     ],
     alias: {
       s: "ignore-source",
       p: "keep-pattern",
+      t: "triangleshot",
       h: "help"
     }
   });
@@ -71,6 +74,8 @@ Options:
         ignore the voice sources of the cues
     -p, --keep-pattern
         continue the oneshot pattern after squareshots
+    -t, --triangleshot
+        enable triangleshots
     -h, --help
         show this help message
 
@@ -90,7 +95,8 @@ The level is read from stdin.
     missingHits
   } = checkLevel(await readText(Deno.stdin), {
     ignoreSource,
-    keepPattern
+    keepPattern,
+    triangleshot
   });
   const errorTypes: [number[], string][] = [
     [invalidNormalCues, "Invalid oneshot cue"],

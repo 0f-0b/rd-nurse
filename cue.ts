@@ -4,6 +4,7 @@ import { almostEqual, repeat, unique } from "./util.ts";
 export interface PlayCuesOptions {
   ignoreSource?: boolean;
   keepPattern?: boolean;
+  triangleshot?: boolean;
 }
 
 export interface PlayCuesResult {
@@ -72,12 +73,14 @@ function* playNormal(source: Source, endTime: number): Generator<ExpectedBeat, v
   }
 }
 
-function* playSquare(source: Source, startTime: number, count: number): Generator<ExpectedBeat, void, unknown> {
+function* playSquare(source: Source, startTime: number, count: number, triangleshot?: boolean): Generator<ExpectedBeat, void, unknown> {
   const { interval } = source.square;
   if (interval <= 0)
     return;
-  for (let i = 1; i <= count; i++)
-    yield { time: startTime + interval * i, prev: -1, next: -1 };
+  startTime += interval;
+  const hitInterval = triangleshot ? interval / count : interval;
+  for (let i = 0; i < count; i++)
+    yield { time: startTime + hitInterval * i, prev: -1, next: -1 };
 }
 
 function checkNormalCue(cue: PatternCue[], time: number): CueResult<NormalPattern> {
@@ -129,7 +132,7 @@ function checkSquareCue(cue: PatternCue[], time: number): CueResult<SquarePatter
   };
 }
 
-export function playCues(cues: readonly Cue[], { ignoreSource, keepPattern }: PlayCuesOptions = {}): PlayCuesResult {
+export function playCues(cues: readonly Cue[], { ignoreSource, keepPattern, triangleshot }: PlayCuesOptions = {}): PlayCuesResult {
   const result: PlayCuesResult = {
     expected: [],
     invalidNormalCues: [],
@@ -186,7 +189,7 @@ export function playCues(cues: readonly Cue[], { ignoreSource, keepPattern }: Pl
             source.square = cueResult.pattern;
           source.next = [];
         }
-        for (const beat of playSquare(source, time, cue.type))
+        for (const beat of playSquare(source, time, cue.type, triangleshot))
           result.expected.push(beat);
         break;
     }
