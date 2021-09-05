@@ -77,10 +77,12 @@ function* playSquare(source: Source, startTime: number, count: number, triangles
   const { interval } = source.square;
   if (interval <= 0)
     return;
-  startTime += interval;
-  const hitInterval = triangleshot ? interval / count : interval;
-  for (let i = 0; i < count; i++)
-    yield { time: startTime + hitInterval * i, prev: -1, next: -1 };
+  if (count === 2 && triangleshot)
+    for (const i of [1.5, 2])
+      yield { time: startTime + interval * i, prev: -1, next: -1 };
+  else
+    for (let i = 1; i <= count; i++)
+      yield { time: startTime + interval * i, prev: -1, next: -1 };
 }
 
 function checkNormalCue(cue: PatternCue[], time: number): CueResult<NormalPattern> {
