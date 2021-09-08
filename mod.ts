@@ -8,6 +8,7 @@ import type { Beat, Cue, CueSource, CueType, Level } from "./level.ts";
 import { parseLevel } from "./level.ts";
 import type { TimeCache } from "./time.ts";
 import { barToBeat, beatToBar, beatToTime, timeToBeat } from "./time.ts";
+import { formatTime, joinToString } from "./util.ts";
 
 export type { Beat, CheckBeatsResult, Cue, CueSource, CueType, ExpectedBeat, Level, PlayCuesOptions, PlayCuesResult, TimeCache };
 export { barToBeat, beatToBar, beatToTime, checkBeats, parseLevel, playCues, timeToBeat };
@@ -83,7 +84,10 @@ The level is read from stdin.
 `.substring(1));
     Deno.exit(0);
   }
+
   const {
+    barCache,
+    beatCache,
     invalidNormalCues,
     invalidSquareCues,
     unexpectedSkipshots,
@@ -114,7 +118,7 @@ The level is read from stdin.
     if (pos.length === 0)
       continue;
     errors += pos.length;
-    console.log(`${desc}: ${pos.map(time => `${time.toFixed(3)}s`).join(", ")}`);
+    console.log(joinToString(pos, time => formatTime(beatToBar(barCache, timeToBeat(beatCache, time))), { separator: ", ", prefix: desc + ": " }));
   }
   if (errors !== 0)
     Deno.exit(1);
