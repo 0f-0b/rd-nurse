@@ -8,10 +8,29 @@ import type { Beat, Cue, CueSource, CueType, Level } from "./level.ts";
 import { parseLevel } from "./level.ts";
 import type { TimeCache } from "./time.ts";
 import { barToBeat, beatToBar, beatToTime, timeToBeat } from "./time.ts";
-import { formatTime, joinToString } from "./util.ts";
+import { joinToString } from "./util.ts";
 
-export type { Beat, CheckBeatsResult, Cue, CueSource, CueType, ExpectedBeat, Level, PlayCuesOptions, PlayCuesResult, TimeCache };
-export { barToBeat, beatToBar, beatToTime, checkBeats, parseLevel, playCues, timeToBeat };
+export type {
+  Beat,
+  CheckBeatsResult,
+  Cue,
+  CueSource,
+  CueType,
+  ExpectedBeat,
+  Level,
+  PlayCuesOptions,
+  PlayCuesResult,
+  TimeCache,
+};
+export {
+  barToBeat,
+  beatToBar,
+  beatToTime,
+  checkBeats,
+  parseLevel,
+  playCues,
+  timeToBeat,
+};
 
 export interface CheckLevelResult {
   barCache: TimeCache;
@@ -27,10 +46,24 @@ export interface CheckLevelResult {
   missingHits: number[];
 }
 
-export function checkLevel(level: string, options?: PlayCuesOptions): CheckLevelResult {
+export function checkLevel(
+  level: string,
+  options?: PlayCuesOptions,
+): CheckLevelResult {
   const { barCache, beatCache, cues, beats } = parseLevel(level);
-  const { expected, invalidNormalCues, invalidSquareCues } = playCues(cues, options);
-  const { unexpectedSkipshots, overlappingSkipshots, unexpectedFreezeshots, overlappingFreezeshots, uncuedHits, skippedHits, missingHits } = checkBeats(beats, expected);
+  const { expected, invalidNormalCues, invalidSquareCues } = playCues(
+    cues,
+    options,
+  );
+  const {
+    unexpectedSkipshots,
+    overlappingSkipshots,
+    unexpectedFreezeshots,
+    overlappingFreezeshots,
+    uncuedHits,
+    skippedHits,
+    missingHits,
+  } = checkBeats(beats, expected);
   return {
     barCache,
     beatCache,
@@ -42,8 +75,12 @@ export function checkLevel(level: string, options?: PlayCuesOptions): CheckLevel
     overlappingFreezeshots,
     uncuedHits,
     skippedHits,
-    missingHits
+    missingHits,
   };
+}
+
+export function formatTime([bar, beat]: [number, number]): string {
+  return `${bar + 1}-${Math.round((beat + 1) * 1000) / 1000}`;
 }
 
 if (import.meta.main) {
@@ -51,20 +88,20 @@ if (import.meta.main) {
     "ignore-source": ignoreSource,
     "keep-pattern": keepPattern,
     "triangleshot": triangleshot,
-    "help": help
+    "help": help,
   } = parse(Deno.args, {
     boolean: [
       "ignore-source",
       "keep-pattern",
       "triangleshot",
-      "help"
+      "help",
     ],
     alias: {
       s: "ignore-source",
       p: "keep-pattern",
       t: "triangleshot",
-      h: "help"
-    }
+      h: "help",
+    },
   });
   if (help) {
     console.log(`
@@ -96,11 +133,11 @@ The level is read from stdin.
     overlappingFreezeshots,
     uncuedHits,
     skippedHits,
-    missingHits
+    missingHits,
   } = checkLevel(await readText(Deno.stdin), {
     ignoreSource,
     keepPattern,
-    triangleshot
+    triangleshot,
   });
   const errorTypes: [number[], string][] = [
     [invalidNormalCues, "Invalid oneshot cue"],
@@ -111,15 +148,26 @@ The level is read from stdin.
     [overlappingFreezeshots, "Overlapping freezeshot"],
     [uncuedHits, "Uncued hit"],
     [skippedHits, "Skipped hit"],
-    [missingHits, "Missing hit"]
+    [missingHits, "Missing hit"],
   ];
   let errors = 0;
   for (const [pos, desc] of errorTypes) {
-    if (pos.length === 0)
+    if (pos.length === 0) {
       continue;
+    }
     errors += pos.length;
-    console.log(joinToString(pos, time => formatTime(beatToBar(barCache, timeToBeat(beatCache, time))), { separator: ", ", prefix: desc + ": " }));
+    console.log(
+      joinToString(
+        pos,
+        (time) => formatTime(beatToBar(barCache, timeToBeat(beatCache, time))),
+        {
+          separator: ", ",
+          prefix: desc + ": ",
+        },
+      ),
+    );
   }
-  if (errors !== 0)
+  if (errors !== 0) {
     Deno.exit(1);
+  }
 }
