@@ -86,42 +86,40 @@ export function formatTime([bar, beat]: [number, number]): string {
 if (import.meta.main) {
   const {
     "ignore-source": ignoreSource,
-    "keep-pattern": keepPattern,
+    "interruptible-pattern": interruptiblePattern,
     "triangleshot": triangleshot,
     "help": help,
   } = parse(Deno.args, {
     boolean: [
       "ignore-source",
-      "keep-pattern",
+      "interruptible-pattern",
       "triangleshot",
       "help",
     ],
     alias: {
       s: "ignore-source",
-      p: "keep-pattern",
+      p: "interruptible-pattern",
       t: "triangleshot",
       h: "help",
     },
   });
   if (help) {
-    console.log(`
-Usage: rd-nurse [options]
+    console.log(`Usage: rd-nurse [options]
 
 Options:
     -s, --ignore-source
         ignore the voice sources of the cues
-    -p, --keep-pattern
-        continue the oneshot pattern after squareshots
+    -p, --interruptible-pattern
+        make squareshots stop oneshot patterns
     -t, --triangleshot
         enable triangleshots
     -h, --help
         show this help message
 
 The level is read from stdin.
-`.substring(1));
+`);
     Deno.exit(0);
   }
-
   const {
     barCache,
     beatCache,
@@ -136,7 +134,7 @@ The level is read from stdin.
     missingHits,
   } = checkLevel(await readText(Deno.stdin), {
     ignoreSource,
-    keepPattern,
+    interruptiblePattern,
     triangleshot,
   });
   const errorTypes: [number[], string][] = [

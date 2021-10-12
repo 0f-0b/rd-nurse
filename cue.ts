@@ -3,7 +3,7 @@ import { almostEqual, repeat, unique } from "./util.ts";
 
 export interface PlayCuesOptions {
   ignoreSource?: boolean;
-  keepPattern?: boolean;
+  interruptiblePattern?: boolean;
   triangleshot?: boolean;
 }
 
@@ -168,7 +168,7 @@ function checkSquareCue(
 
 export function playCues(
   cues: readonly Cue[],
-  { ignoreSource, keepPattern, triangleshot }: PlayCuesOptions = {},
+  { ignoreSource, interruptiblePattern, triangleshot }: PlayCuesOptions = {},
 ): PlayCuesResult {
   const result: PlayCuesResult = {
     expected: [],
@@ -220,7 +220,7 @@ export function playCues(
         source.startTime = -1;
         break;
       default:
-        if (!keepPattern) {
+        if (interruptiblePattern) {
           for (const beat of playNormal(source, time)) {
             result.expected.push(beat);
           }
