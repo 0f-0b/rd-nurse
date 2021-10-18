@@ -10,7 +10,7 @@ oneshots.
 Make sure you [have Deno installed](https://deno.land/#installation), and then
 run the following in a terminal:
 
-<pre><code>deno install https://cdn.jsdelivr.net/gh/sjx233/rd-nurse@main/mod.ts</code></pre>
+<pre><code>deno install https://cdn.jsdelivr.net/gh/sjx233/rd-nurse@main/main.ts</code></pre>
 
 ## Synopsis
 
@@ -44,16 +44,10 @@ incorrectly cued oneshots found in the level.
 
 The exit status is 0 if no illegality is found, and 1 otherwise.
 
-## Notes
-
-This program works by computing a set of hit positions according to the cue
-sounds, and comparing them with the actual oneshot beats in the level.
-
 ## Bugs
 
-Events related to RDCode and cues played with Play Sound events are completely
-ignored, sometimes leading to correctly cued oneshots being reported as uncued
-or miscued.
+Tags, conditionals and custom cue sounds are completely ignored, sometimes
+leading to correctly cued oneshots being reported as uncued or miscued.
 
 ## See Also
 

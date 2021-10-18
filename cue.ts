@@ -1,5 +1,5 @@
 import type { Cue } from "./level.ts";
-import { almostEqual, repeat, unique } from "./util.ts";
+import { almostEqual, unique } from "./util.ts";
 
 export interface PlayCuesOptions {
   ignoreSource?: boolean;
@@ -56,6 +56,17 @@ export interface ExpectedBeat {
   time: number;
   prev: number;
   next: number;
+}
+
+function* repeat<T, U>(
+  arr: readonly T[],
+  selector: (value: T, group: number) => U,
+): Generator<U, never, unknown> {
+  for (let i = 0;; i++) {
+    for (const elem of arr) {
+      yield selector(elem, i);
+    }
+  }
 }
 
 function* playNormal(
