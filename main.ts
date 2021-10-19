@@ -1,45 +1,7 @@
-import { parse } from "https://deno.land/std@0.111.0/flags/mod.ts";
-import { readAll } from "https://deno.land/std@0.111.0/streams/conversion.ts";
+import { joinToString } from "https://deno.land/std@0.112.0/collections/join_to_string.ts";
+import { parse } from "https://deno.land/std@0.112.0/flags/mod.ts";
+import { readAll } from "https://deno.land/std@0.112.0/streams/conversion.ts";
 import { beatToBar, checkLevel, formatTime, timeToBeat } from "./mod.ts";
-
-interface JoinToStringOptions {
-  separator?: string;
-  prefix?: string;
-  suffix?: string;
-  truncate?: {
-    after: number;
-    with?: string;
-  };
-}
-
-function joinToString<T>(
-  it: Iterable<T>,
-  selector: (value: T) => string,
-  {
-    separator = ", ",
-    prefix = "",
-    suffix = "",
-    truncate: {
-      after: limit,
-      with: truncated = "...",
-    } = { after: Infinity },
-  }: JoinToStringOptions = {},
-): string {
-  let result = prefix;
-  let count = 0;
-  for (const elem of it) {
-    if (++count > 1) {
-      result += separator;
-    }
-    if (count > limit) {
-      result += truncated;
-      break;
-    }
-    result += selector(elem);
-  }
-  result += suffix;
-  return result;
-}
 
 const {
   "ignore-source": ignoreSource,
