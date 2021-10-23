@@ -1,6 +1,6 @@
 import { joinToString } from "https://deno.land/std@0.112.0/collections/join_to_string.ts";
 import { parse } from "https://deno.land/std@0.112.0/flags/mod.ts";
-import { readAll } from "https://deno.land/std@0.112.0/streams/conversion.ts";
+import { readAllSync } from "https://deno.land/std@0.112.0/streams/conversion.ts";
 import { beatToBar, checkLevel, formatTime, timeToBeat } from "./mod.ts";
 
 const {
@@ -55,7 +55,7 @@ const {
   uncuedHits,
   skippedHits,
   missingHits,
-} = checkLevel(new TextDecoder().decode(await readAll(Deno.stdin)), {
+} = checkLevel(new TextDecoder().decode(readAllSync(Deno.stdin)), {
   ignoreSource,
   interruptiblePattern,
   triangleshot,

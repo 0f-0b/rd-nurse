@@ -1,5 +1,3 @@
-export type TimeCache = [bar: number, beat: number, cpb: number][];
-
 function partitionPoint<T>(
   arr: readonly T[],
   pred: (value: T, index: number, arr: readonly T[]) => boolean,
@@ -16,6 +14,8 @@ function partitionPoint<T>(
   }
   return l;
 }
+
+export type TimeCache = [bar: number, beat: number, cpb: number][];
 
 // deno-lint-ignore no-explicit-any
 export function initBarCache(events: any[]): TimeCache {
