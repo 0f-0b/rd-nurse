@@ -1,5 +1,5 @@
 import type { ExpectedBeat } from "./cue.ts";
-import type { Beat } from "./level.ts";
+import type { OneshotBeat } from "./level.ts";
 import { almostEqual, unique } from "./util.ts";
 
 export interface CheckBeatsResult {
@@ -31,7 +31,7 @@ interface ErrorResult {
 type BeatResult = NormalResult | ErrorResult;
 
 function addBeat(
-  { time, skipshot, start, delay }: Beat,
+  { time, skipshot, start, delay }: OneshotBeat,
   expected: ExpectedBeat[],
 ): BeatResult {
   const matches = expected
@@ -64,7 +64,7 @@ function addBeat(
 }
 
 export function checkBeats(
-  beats: Beat[],
+  beats: OneshotBeat[],
   expected: ExpectedBeat[],
 ): CheckBeatsResult {
   const hit: { time: number; delay: number }[] = [];

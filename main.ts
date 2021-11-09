@@ -1,6 +1,6 @@
-import { joinToString } from "https://deno.land/std@0.112.0/collections/join_to_string.ts";
-import { parse } from "https://deno.land/std@0.112.0/flags/mod.ts";
-import { readAllSync } from "https://deno.land/std@0.112.0/streams/conversion.ts";
+import { joinToString } from "https://deno.land/std@0.114.0/collections/join_to_string.ts";
+import { parse } from "https://deno.land/std@0.114.0/flags/mod.ts";
+import { readAllSync } from "https://deno.land/std@0.114.0/streams/conversion.ts";
 import { beatToBar, checkLevel, formatTime, timeToBeat } from "./mod.ts";
 
 const {

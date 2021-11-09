@@ -1,4 +1,4 @@
-import type { Cue } from "./level.ts";
+import type { OneshotCue } from "./level.ts";
 import { almostEqual, unique } from "./util.ts";
 
 export interface PlayCuesOptions {
@@ -178,7 +178,7 @@ function checkSquareCue(
 }
 
 export function playCues(
-  cues: readonly Cue[],
+  cues: readonly OneshotCue[],
   { ignoreSource, interruptiblePattern, triangleshot }: PlayCuesOptions = {},
 ): PlayCuesResult {
   const result: PlayCuesResult = {
@@ -186,7 +186,7 @@ export function playCues(
     invalidNormalCues: [],
     invalidSquareCues: [],
   };
-  const sources = new Map<Cue["source"], Source>();
+  const sources = new Map<OneshotCue["source"], Source>();
   for (const cue of cues) {
     const time = cue.time;
     const sourceId = ignoreSource ? "nurse" : cue.source;

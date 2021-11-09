@@ -8,7 +8,13 @@ export type { PlayCuesOptions, TimeCache };
 export { checkBeats, parseLevel, playCues };
 export type { CheckBeatsResult } from "./beat.ts";
 export type { ExpectedBeat, PlayCuesResult } from "./cue.ts";
-export type { Beat, Cue, CueSource, CueType, Level } from "./level.ts";
+export type {
+  CueSource,
+  CueType,
+  Level,
+  OneshotBeat,
+  OneshotCue,
+} from "./level.ts";
 export { barToBeat, beatToBar, beatToTime, timeToBeat } from "./time.ts";
 
 export interface CheckLevelResult {
@@ -32,14 +38,14 @@ export function checkLevel(
   const {
     barCache,
     beatCache,
-    cues,
-    beats,
+    oneshotCues,
+    oneshotBeats,
   } = parseLevel(level);
   const {
     expected,
     invalidNormalCues,
     invalidSquareCues,
-  } = playCues(cues, options);
+  } = playCues(oneshotCues, options);
   const {
     unexpectedSkipshots,
     overlappingSkipshots,
@@ -48,7 +54,7 @@ export function checkLevel(
     uncuedHits,
     skippedHits,
     missingHits,
-  } = checkBeats(beats, expected);
+  } = checkBeats(oneshotBeats, expected);
   return {
     barCache,
     beatCache,
