@@ -55,6 +55,8 @@ const {
   uncuedHits,
   skippedHits,
   missingHits,
+  hitOnHoldRelease,
+  overlappingHolds,
 } = checkLevel(new TextDecoder().decode(readAllSync(Deno.stdin)), {
   ignoreSource,
   interruptiblePattern,
@@ -64,12 +66,14 @@ const errorTypes: [number[], string][] = [
   [invalidNormalCues, "Invalid oneshot cue"],
   [invalidSquareCues, "Invalid squareshot cue"],
   [unexpectedSkipshots, "Unexpected skipshot"],
-  [overlappingSkipshots, "Overlapping skipshot"],
+  [overlappingSkipshots, "Overlapping skipshots"],
   [unexpectedFreezeshots, "Unexpected freezeshot"],
-  [overlappingFreezeshots, "Overlapping freezeshot"],
+  [overlappingFreezeshots, "Overlapping freezeshots"],
   [uncuedHits, "Uncued hit"],
   [skippedHits, "Skipped hit"],
   [missingHits, "Missing hit"],
+  [hitOnHoldRelease, "Hit on hold release"],
+  [overlappingHolds, "Overlapping holds"],
 ];
 let errors = 0;
 for (const [pos, desc] of errorTypes) {

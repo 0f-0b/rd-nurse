@@ -48,10 +48,13 @@ export function initBarCache(events: any[]): TimeCache {
   return result;
 }
 
-export function barToBeat(barCache: TimeCache, bar: number): number {
+export function barToBeat(
+  barCache: TimeCache,
+  bar: number,
+): [beat: number, cpb: number] {
   const [cbar, cbeat, ccpb] =
     barCache[partitionPoint(barCache, ([cbar]) => cbar <= bar) - 1];
-  return cbeat + (bar - cbar) * ccpb;
+  return [cbeat + (bar - cbar) * ccpb, ccpb];
 }
 
 export function beatToBar(
@@ -74,18 +77,14 @@ export function initBeatCache(barCache: TimeCache, events: any[]): TimeCache {
     if (event.if || event.tag) {
       continue;
     }
+    const [beatAtStartOfBar] = barToBeat(barCache, event.bar - 1);
+    const beat = beatAtStartOfBar + (event.beat - 1);
     switch (event.type) {
       case "PlaySong":
-        spbs.set(
-          barToBeat(barCache, event.bar - 1) + (event.beat - 1),
-          60 / event.bpm,
-        );
+        spbs.set(beat, 60 / event.bpm);
         break;
       case "SetBeatsPerMinute":
-        spbs.set(
-          barToBeat(barCache, event.bar - 1) + (event.beat - 1),
-          60 / event.beatsPerMinute,
-        );
+        spbs.set(beat, 60 / event.beatsPerMinute);
         break;
     }
   }

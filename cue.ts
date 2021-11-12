@@ -1,16 +1,19 @@
 import type { OneshotCue } from "./level.ts";
-import { almostEqual, unique } from "./util.ts";
+import { almostEqual, sortTime, unique } from "./util.ts";
 
-export interface PlayCuesOptions {
+export interface PlayOneshotCuesOptions {
   ignoreSource?: boolean;
   interruptiblePattern?: boolean;
   triangleshot?: boolean;
 }
 
-export interface PlayCuesResult {
-  expected: ExpectedBeat[];
+export interface CheckOneshotCuesResult {
   invalidNormalCues: number[];
   invalidSquareCues: number[];
+}
+
+export interface PlayOneshotCuesResult extends CheckOneshotCuesResult {
+  expected: ExpectedBeat[];
 }
 
 interface NormalPattern {
@@ -177,11 +180,12 @@ function checkSquareCue(
   };
 }
 
-export function playCues(
-  cues: readonly OneshotCue[],
-  { ignoreSource, interruptiblePattern, triangleshot }: PlayCuesOptions = {},
-): PlayCuesResult {
-  const result: PlayCuesResult = {
+export function playOneshotCues(cues: readonly OneshotCue[], {
+  ignoreSource,
+  interruptiblePattern,
+  triangleshot,
+}: PlayOneshotCuesOptions = {}): PlayOneshotCuesResult {
+  const result: PlayOneshotCuesResult = {
     expected: [],
     invalidNormalCues: [],
     invalidSquareCues: [],
@@ -252,11 +256,12 @@ export function playCues(
         break;
     }
   }
-  unique(
-    result.expected.sort((a, b) => a.time - b.time || a.next - b.next),
-    (a, b) => almostEqual(a.time, b.time) && almostEqual(a.next, b.next),
-  );
-  unique(result.invalidNormalCues.sort((a, b) => a - b), almostEqual);
-  unique(result.invalidSquareCues.sort((a, b) => a - b), almostEqual);
+  result.expected
+    .sort((a, b) => a.time - b.time || a.next - b.next)
+    [unique]((a, b) =>
+      almostEqual(a.time, b.time) && almostEqual(a.next, b.next)
+    );
+  sortTime(result.invalidNormalCues);
+  sortTime(result.invalidSquareCues);
   return result;
 }

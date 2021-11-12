@@ -1,13 +1,19 @@
-import { checkBeats } from "./beat.ts";
-import type { PlayCuesOptions } from "./cue.ts";
-import { playCues } from "./cue.ts";
+import type { CheckHoldsResult, CheckOneshotBeatsResult } from "./beat.ts";
+import { checkHolds, checkOneshotBeats } from "./beat.ts";
+import type { CheckOneshotCuesResult, PlayOneshotCuesOptions } from "./cue.ts";
+import { playOneshotCues } from "./cue.ts";
 import { parseLevel } from "./level.ts";
 import type { TimeCache } from "./time.ts";
 
-export type { PlayCuesOptions, TimeCache };
-export { checkBeats, parseLevel, playCues };
-export type { CheckBeatsResult } from "./beat.ts";
-export type { ExpectedBeat, PlayCuesResult } from "./cue.ts";
+export type {
+  CheckHoldsResult,
+  CheckOneshotBeatsResult,
+  CheckOneshotCuesResult,
+  PlayOneshotCuesOptions,
+  TimeCache,
+};
+export { checkHolds, checkOneshotBeats, parseLevel, playOneshotCues };
+export type { ExpectedBeat, PlayOneshotCuesResult } from "./cue.ts";
 export type {
   CueSource,
   CueType,
@@ -17,35 +23,31 @@ export type {
 } from "./level.ts";
 export { barToBeat, beatToBar, beatToTime, timeToBeat } from "./time.ts";
 
-export interface CheckLevelResult {
+export type CheckLevelOptions = PlayOneshotCuesOptions;
+
+export interface CheckLevelResult
+  extends CheckOneshotCuesResult, CheckOneshotBeatsResult, CheckHoldsResult {
   barCache: TimeCache;
   beatCache: TimeCache;
-  invalidNormalCues: number[];
-  invalidSquareCues: number[];
-  unexpectedSkipshots: number[];
-  overlappingSkipshots: number[];
-  unexpectedFreezeshots: number[];
-  overlappingFreezeshots: number[];
-  uncuedHits: number[];
-  skippedHits: number[];
-  missingHits: number[];
 }
 
 export function checkLevel(
   level: string,
-  options?: PlayCuesOptions,
+  options?: CheckLevelOptions,
 ): CheckLevelResult {
   const {
     barCache,
     beatCache,
     oneshotCues,
     oneshotBeats,
+    hits,
+    holds,
   } = parseLevel(level);
   const {
     expected,
     invalidNormalCues,
     invalidSquareCues,
-  } = playCues(oneshotCues, options);
+  } = playOneshotCues(oneshotCues, options);
   const {
     unexpectedSkipshots,
     overlappingSkipshots,
@@ -54,7 +56,11 @@ export function checkLevel(
     uncuedHits,
     skippedHits,
     missingHits,
-  } = checkBeats(oneshotBeats, expected);
+  } = checkOneshotBeats(oneshotBeats, expected);
+  const {
+    hitOnHoldRelease,
+    overlappingHolds,
+  } = checkHolds(hits, holds);
   return {
     barCache,
     beatCache,
@@ -67,6 +73,8 @@ export function checkLevel(
     uncuedHits,
     skippedHits,
     missingHits,
+    hitOnHoldRelease,
+    overlappingHolds,
   };
 }
 

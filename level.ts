@@ -1,6 +1,6 @@
 import type { TimeCache } from "./time.ts";
 import { barToBeat, beatToTime, initBarCache, initBeatCache } from "./time.ts";
-import { almostEqual, unique } from "./util.ts";
+import { almostEqual, sortTime, unique } from "./util.ts";
 
 export type CueType = typeof cueTypes[number];
 const cueTypes = [1, 2, "go", "stop", "get", "set"] as const;
@@ -43,19 +43,31 @@ export interface OneshotBeat {
   delay: number;
 }
 
+export interface Hold {
+  hit: number;
+  release: number;
+}
+
 export interface Level {
   barCache: TimeCache;
   beatCache: TimeCache;
   oneshotCues: OneshotCue[];
   oneshotBeats: OneshotBeat[];
+  hits: number[];
+  holds: Hold[];
+}
+
+interface Freetime {
+  offset: number;
+  cpb: number;
+  beat: number;
+  pulse: number;
 }
 
 export function parseLevel(level: string): Level {
   const { rows, events } = JSON.parse(
     level.replace(/^\ufeff/, "").replace(/[\t\r]|,\s*(?=[}\]])/g, ""),
   );
-  const oneshotCues: OneshotCue[] = [];
-  const oneshotBeats: OneshotBeat[] = [];
   const enabledRows = new Set<number>();
   for (const { row, muteBeats } of rows) {
     if (!muteBeats) {
@@ -67,17 +79,34 @@ export function parseLevel(level: string): Level {
     .sort((a: { bar: number }, b: { bar: number }) => a.bar - b.bar);
   const barCache = initBarCache(activeEvents);
   const beatCache = initBeatCache(barCache, activeEvents);
+  const oneshotCues: OneshotCue[] = [];
+  const oneshotBeats: OneshotBeat[] = [];
+  const hits: number[] = [];
+  const holds: Hold[] = [];
+  const freetimes: Freetime[] = [];
+
+  function addClassicBeat(beat: number, hold: number): void {
+    const [hit] = beatToTime(beatCache, beat);
+    if (hold) {
+      const [release] = beatToTime(beatCache, beat + hold);
+      holds.push({ hit, release });
+    } else {
+      hits.push(hit);
+    }
+  }
+
   for (const event of activeEvents) {
     if (event.if || event.tag) {
       continue;
     }
-    const beat = barToBeat(barCache, event.bar - 1) + (event.beat - 1);
-    const [time, spb] = beatToTime(beatCache, beat);
+    const [beatAtStartOfBar, cpb] = barToBeat(barCache, event.bar - 1);
+    const beat = beatAtStartOfBar + (event.beat - 1);
     switch (event.type) {
       case "SayReadyGetSetGo": {
         const tick = event.tick;
         const parts = cueTypeMap.get(event.phraseToSay) ?? [];
         const source = cueSourceMap.get(event.voiceSource) ?? "nurse";
+        const [time, spb] = beatToTime(beatCache, beat);
         for (let i = 0, len = parts.length; i < len; i++) {
           const part = parts[i];
           if (part !== undefined) {
@@ -94,11 +123,14 @@ export function parseLevel(level: string): Level {
         if (!enabledRows.has(event.row)) {
           break;
         }
-        const tick = event.tick;
-        const loops = event.loops ?? 0;
-        const interval = event.interval ?? 0;
-        const delay = event.delay ?? 0;
-        const skipshot = event.skipshot ?? false;
+        const {
+          tick,
+          loops = 0,
+          interval = 0,
+          delay = 0,
+          skipshot = false,
+        } = event;
+        const [time, spb] = beatToTime(beatCache, beat);
         for (let i = 0; i <= loops; i++) {
           oneshotBeats.push({
             time: time +
@@ -107,10 +139,71 @@ export function parseLevel(level: string): Level {
             start: time + (interval * i) * spb,
             delay: delay * spb,
           });
+          hits.push(time + (interval * i + (delay ? interval : tick)) * spb);
         }
         break;
       }
+      case "AddClassicBeat": {
+        if (!enabledRows.has(event.row)) {
+          break;
+        }
+        const { tick, hold = 0 } = event;
+        addClassicBeat(beat + tick * 6, hold);
+        break;
+      }
+      case "AddFreeTimeBeat": {
+        if (!enabledRows.has(event.row)) {
+          break;
+        }
+        const { pulse, hold = 0 } = event;
+        if (pulse === 6) {
+          addClassicBeat(beat, hold);
+          break;
+        }
+        freetimes.push({
+          offset: beat - (event.bar * cpb + event.beat),
+          cpb,
+          beat,
+          pulse,
+        });
+        break;
+      }
+      case "PulseFreeTimeBeat": {
+        if (!enabledRows.has(event.row)) {
+          break;
+        }
+        const { action, customPulse, hold = 0 } = event;
+        let remaining = 0;
+        for (const freetime of freetimes) {
+          const beat = freetime.offset + event.bar * freetime.cpb + event.beat;
+          if (beat > freetime.beat) {
+            switch (action) {
+              default:
+                freetime.pulse++;
+                break;
+              case "Decrement":
+                if (freetime.pulse !== 0) {
+                  freetime.pulse--;
+                }
+                break;
+              case "Custom":
+                freetime.pulse = customPulse;
+                break;
+              case "Remove":
+                continue;
+            }
+            if (freetime.pulse === 6) {
+              addClassicBeat(beat, hold);
+              continue;
+            }
+          }
+          freetimes[remaining++] = freetime;
+        }
+        freetimes.length = remaining;
+        break;
+      }
       case "FinishLevel": {
+        const [time] = beatToTime(beatCache, beat);
         for (const source of cueSources) {
           oneshotCues.push({ time, type: "stop", source });
         }
@@ -118,21 +211,29 @@ export function parseLevel(level: string): Level {
       }
     }
   }
-  oneshotCues.sort((a, b) =>
-    cueTypes.indexOf(a.type) - cueTypes.indexOf(b.type) ||
-    cueSources.indexOf(a.source) - cueSources.indexOf(b.source) ||
-    a.time - b.time
-  );
-  unique(
-    oneshotCues,
-    (a, b) =>
-      a.type === b.type && a.source === b.source && almostEqual(a.time, b.time),
-  ).sort((a, b) => a.time - b.time);
-  unique(
-    oneshotBeats.sort((a, b) =>
-      Number(a.skipshot) - Number(b.skipshot) || a.time - b.time
-    ),
-    (a, b) => a.skipshot === b.skipshot && almostEqual(a.time, b.time),
-  ).sort((a, b) => a.time - b.time);
-  return { barCache, beatCache, oneshotCues, oneshotBeats };
+  oneshotCues
+    .sort((a, b) =>
+      cueTypes.indexOf(a.type) - cueTypes.indexOf(b.type) ||
+      cueSources.indexOf(a.source) - cueSources.indexOf(b.source) ||
+      a.time - b.time
+    )
+    [unique]((a, b) =>
+      a.type === b.type && a.source === b.source && almostEqual(a.time, b.time)
+    )
+    .sort((a, b) => a.time - b.time);
+  oneshotBeats
+    .sort((a, b) => Number(a.skipshot) - Number(b.skipshot) || a.time - b.time)
+    [unique]((a, b) => a.skipshot === b.skipshot && almostEqual(a.time, b.time))
+    .sort((a, b) => a.time - b.time);
+  sortTime(hits);
+  holds
+    .sort((a, b) => a.release - b.release || a.hit - b.hit)
+    [unique]((a, b) =>
+      almostEqual(a.release, b.release) && almostEqual(a.hit, b.hit)
+    )
+    .sort((a, b) => a.hit - b.hit)
+    [unique]((a, b) =>
+      almostEqual(a.release, b.release) && almostEqual(a.hit, b.hit)
+    );
+  return { barCache, beatCache, oneshotCues, oneshotBeats, hits, holds };
 }

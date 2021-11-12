@@ -1,8 +1,8 @@
 import type { ExpectedBeat } from "./cue.ts";
-import type { OneshotBeat } from "./level.ts";
-import { almostEqual, unique } from "./util.ts";
+import type { Hold, OneshotBeat } from "./level.ts";
+import { almostEqual, sortTime } from "./util.ts";
 
-export interface CheckBeatsResult {
+export interface CheckOneshotBeatsResult {
   unexpectedSkipshots: number[];
   overlappingSkipshots: number[];
   unexpectedFreezeshots: number[];
@@ -63,14 +63,14 @@ function addBeat(
   return { type: "normal", time, delay, skips: undefined };
 }
 
-export function checkBeats(
+export function checkOneshotBeats(
   beats: OneshotBeat[],
   expected: ExpectedBeat[],
-): CheckBeatsResult {
+): CheckOneshotBeatsResult {
   const hit: { time: number; delay: number }[] = [];
   const skipped: number[] = [];
   const uncued: number[] = [];
-  const result: CheckBeatsResult = {
+  const result: CheckOneshotBeatsResult = {
     unexpectedSkipshots: [],
     overlappingSkipshots: [],
     unexpectedFreezeshots: [],
@@ -128,12 +128,43 @@ export function checkBeats(
       result.missingHits.push(time);
     }
   }
-  unique(result.unexpectedSkipshots.sort((a, b) => a - b), almostEqual);
-  unique(result.overlappingSkipshots.sort((a, b) => a - b), almostEqual);
-  unique(result.unexpectedFreezeshots.sort((a, b) => a - b), almostEqual);
-  unique(result.overlappingFreezeshots.sort((a, b) => a - b), almostEqual);
-  unique(result.uncuedHits.sort((a, b) => a - b), almostEqual);
-  unique(result.skippedHits.sort((a, b) => a - b), almostEqual);
-  unique(result.missingHits.sort((a, b) => a - b), almostEqual);
+  sortTime(result.unexpectedSkipshots);
+  sortTime(result.overlappingSkipshots);
+  sortTime(result.unexpectedFreezeshots);
+  sortTime(result.overlappingFreezeshots);
+  sortTime(result.uncuedHits);
+  sortTime(result.skippedHits);
+  sortTime(result.missingHits);
+  return result;
+}
+
+export interface CheckHoldsResult {
+  hitOnHoldRelease: number[];
+  overlappingHolds: number[];
+}
+
+export function checkHolds(hits: number[], holds: Hold[]): CheckHoldsResult {
+  const result: CheckHoldsResult = {
+    hitOnHoldRelease: [],
+    overlappingHolds: [],
+  };
+  for (const hit of hits) {
+    if (holds.some(({ release }) => almostEqual(release, hit))) {
+      result.hitOnHoldRelease.push(hit);
+    }
+  }
+  for (const { hit, release } of holds) {
+    if (
+      holds.some((other) =>
+        !(almostEqual(hit, other.hit) && almostEqual(release, other.release)) &&
+        (almostEqual(hit, other.hit) || almostEqual(hit, other.release) ||
+          (hit > other.hit && hit < other.release))
+      )
+    ) {
+      result.overlappingHolds.push(hit);
+    }
+  }
+  sortTime(result.hitOnHoldRelease);
+  sortTime(result.overlappingHolds);
   return result;
 }
