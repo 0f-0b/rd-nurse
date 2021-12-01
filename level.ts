@@ -1,10 +1,11 @@
+import RDLevel from "https://esm.sh/@auburnsummer/vitals@0.6.4/lib/rdlevel?pin=v58";
 import type { TimeCache } from "./time.ts";
 import { barToBeat, beatToTime, initBarCache, initBeatCache } from "./time.ts";
 import { almostEqual, sortTime, unique } from "./util.ts";
 
 export type CueType = typeof cueTypes[number];
 const cueTypes = [1, 2, "go", "stop", "get", "set"] as const;
-const cueTypeMap = new Map<string, (CueType | undefined)[]>([
+const cueTypeMap = new Map<string, (CueType | null)[]>([
   ["SayReaDyGetSetGoNew", ["get", "set", "get", "set", "go"]],
   ["SayGetSetGo", ["get", "set", "go"]],
   ["SayReaDyGetSetOne", ["get", "set", "get", "set", 1]],
@@ -18,7 +19,7 @@ const cueTypeMap = new Map<string, (CueType | undefined)[]>([
   ["JustSayAndStop", ["stop"]],
   ["Count1", [1]],
   ["Count2", [2]],
-  ["SayReadyGetSetGo", [undefined, undefined, "get", "set", "go"]],
+  ["SayReadyGetSetGo", [null, null, "get", "set", "go"]],
 ]);
 export type CueSource = typeof cueSources[number];
 const cueSources = ["nurse", "ian"] as const;
@@ -65,9 +66,7 @@ interface Freetime {
 }
 
 export function parseLevel(level: string): Level {
-  const { rows, events } = JSON.parse(
-    level.replace(/^\ufeff/, "").replace(/[\t\r]|,\s*(?=[}\]])/g, ""),
-  );
+  const { rows, events } = RDLevel.parse(level);
   const enabledRows = new Set<number>();
   for (const { row, muteBeats } of rows) {
     if (!muteBeats) {
@@ -109,7 +108,7 @@ export function parseLevel(level: string): Level {
         const [time, spb] = beatToTime(beatCache, beat);
         for (let i = 0, len = parts.length; i < len; i++) {
           const part = parts[i];
-          if (part !== undefined) {
+          if (part !== null) {
             oneshotCues.push({
               time: time + (tick * i) * spb,
               type: part,
