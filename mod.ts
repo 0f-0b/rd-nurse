@@ -2,6 +2,7 @@ import type { CheckHoldsResult, CheckOneshotBeatsResult } from "./beat.ts";
 import { checkHolds, checkOneshotBeats } from "./beat.ts";
 import type { CheckOneshotCuesResult, PlayOneshotCuesOptions } from "./cue.ts";
 import { playOneshotCues } from "./cue.ts";
+import type { Level } from "./level.ts";
 import { parseLevel } from "./level.ts";
 import type { TimeCache } from "./time.ts";
 
@@ -9,72 +10,40 @@ export type {
   CheckHoldsResult,
   CheckOneshotBeatsResult,
   CheckOneshotCuesResult,
+  Level,
   PlayOneshotCuesOptions,
   TimeCache,
 };
 export { checkHolds, checkOneshotBeats, parseLevel, playOneshotCues };
 export type { ExpectedBeat, PlayOneshotCuesResult } from "./cue.ts";
-export type {
-  CueSource,
-  CueType,
-  Level,
-  OneshotBeat,
-  OneshotCue,
-} from "./level.ts";
+export type { CueSource, CueType, OneshotBeat, OneshotCue } from "./level.ts";
 export { barToBeat, beatToBar, beatToTime, timeToBeat } from "./time.ts";
 
 export type CheckLevelOptions = PlayOneshotCuesOptions;
 
 export interface CheckLevelResult
-  extends CheckOneshotCuesResult, CheckOneshotBeatsResult, CheckHoldsResult {
-  barCache: TimeCache;
-  beatCache: TimeCache;
-}
+  extends CheckOneshotCuesResult, CheckOneshotBeatsResult, CheckHoldsResult {}
 
 export function checkLevel(
-  level: string,
+  level: Level,
   options?: CheckLevelOptions,
 ): CheckLevelResult {
-  const {
-    barCache,
-    beatCache,
-    oneshotCues,
-    oneshotBeats,
-    hits,
-    holds,
-  } = parseLevel(level);
-  const {
+  const { expected, result: checkOneshotCuesResult } = playOneshotCues(
+    level.oneshotCues,
+    options,
+  );
+  const checkOneshotBeatsResult = checkOneshotBeats(
+    level.oneshotBeats,
     expected,
-    invalidNormalCues,
-    invalidSquareCues,
-  } = playOneshotCues(oneshotCues, options);
-  const {
-    unexpectedSkipshots,
-    overlappingSkipshots,
-    unexpectedFreezeshots,
-    overlappingFreezeshots,
-    uncuedHits,
-    skippedHits,
-    missingHits,
-  } = checkOneshotBeats(oneshotBeats, expected);
-  const {
-    hitOnHoldRelease,
-    overlappingHolds,
-  } = checkHolds(hits, holds);
+  );
+  const checkHoldsResult = checkHolds(
+    level.hits,
+    level.holds,
+  );
   return {
-    barCache,
-    beatCache,
-    invalidNormalCues,
-    invalidSquareCues,
-    unexpectedSkipshots,
-    overlappingSkipshots,
-    unexpectedFreezeshots,
-    overlappingFreezeshots,
-    uncuedHits,
-    skippedHits,
-    missingHits,
-    hitOnHoldRelease,
-    overlappingHolds,
+    ...checkOneshotCuesResult,
+    ...checkOneshotBeatsResult,
+    ...checkHoldsResult,
   };
 }
 

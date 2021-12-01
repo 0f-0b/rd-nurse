@@ -12,8 +12,9 @@ export interface CheckOneshotCuesResult {
   invalidSquareCues: number[];
 }
 
-export interface PlayOneshotCuesResult extends CheckOneshotCuesResult {
+export interface PlayOneshotCuesResult {
   expected: ExpectedBeat[];
+  result: CheckOneshotCuesResult;
 }
 
 interface NormalPattern {
@@ -185,8 +186,8 @@ export function playOneshotCues(cues: readonly OneshotCue[], {
   interruptiblePattern,
   triangleshot,
 }: PlayOneshotCuesOptions = {}): PlayOneshotCuesResult {
-  const result: PlayOneshotCuesResult = {
-    expected: [],
+  const expected: ExpectedBeat[] = [];
+  const result: CheckOneshotCuesResult = {
     invalidNormalCues: [],
     invalidSquareCues: [],
   };
@@ -215,7 +216,7 @@ export function playOneshotCues(cues: readonly OneshotCue[], {
         break;
       case "go":
         for (const beat of playNormal(source, time)) {
-          result.expected.push(beat);
+          expected.push(beat);
         }
         if (source.next.length !== 0) {
           const cueResult = checkNormalCue(source.next, time);
@@ -230,14 +231,14 @@ export function playOneshotCues(cues: readonly OneshotCue[], {
         break;
       case "stop":
         for (const beat of playNormal(source, time)) {
-          result.expected.push(beat);
+          expected.push(beat);
         }
         source.startTime = -1;
         break;
       default:
         if (interruptiblePattern) {
           for (const beat of playNormal(source, time)) {
-            result.expected.push(beat);
+            expected.push(beat);
           }
           source.startTime = -1;
         }
@@ -251,17 +252,17 @@ export function playOneshotCues(cues: readonly OneshotCue[], {
           source.next = [];
         }
         for (const beat of playSquare(source, time, cue.type, triangleshot)) {
-          result.expected.push(beat);
+          expected.push(beat);
         }
         break;
     }
   }
-  result.expected
+  expected
     .sort((a, b) => a.time - b.time || a.next - b.next)
     [unique]((a, b) =>
       almostEqual(a.time, b.time) && almostEqual(a.next, b.next)
     );
   sortTime(result.invalidNormalCues);
   sortTime(result.invalidSquareCues);
-  return result;
+  return { expected, result };
 }
