@@ -1,7 +1,7 @@
-import { joinToString } from "https://deno.land/std@0.116.0/collections/join_to_string.ts";
-import { readAllSync } from "https://deno.land/std@0.116.0/streams/conversion.ts";
-// @deno-types="https://cdn.esm.sh/v58/@types/yargs@17.0.7/index.d.ts"
-import yargs from "https://deno.land/x/yargs@v17.3.0-deno/deno.ts";
+import { joinToString } from "https://deno.land/std@0.122.0/collections/join_to_string.ts";
+import { readAllSync } from "https://deno.land/std@0.122.0/streams/conversion.ts";
+// @deno-types="https://cdn.esm.sh/v64/@types/yargs@17.0.8/index.d.ts"
+import yargs from "https://deno.land/x/yargs@v17.3.1-deno/deno.ts";
 import type { CheckLevelResult } from "./mod.ts";
 import {
   beatToBar,

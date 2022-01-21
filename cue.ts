@@ -122,8 +122,21 @@ function checkNormalCue(
   time: number,
 ): CueResult<NormalPattern> {
   const count = cue.length;
-  if (count === 1 && cue[0].type === "set") {
+  if (count === 0) {
     return { type: "keep" };
+  }
+  if (cue[0].type === "set") {
+    if (count !== 1) {
+      return { type: "error" };
+    }
+    const tick = time - cue[0].time;
+    return {
+      type: "replace",
+      pattern: {
+        interval: tick * 2,
+        offsets: [tick],
+      },
+    };
   }
   const startTime = cue[0].time;
   return {
@@ -142,33 +155,34 @@ function checkSquareCue(
   time: number,
 ): CueResult<SquarePattern> {
   const count = cue.length;
-  if (count === 1 && cue[0].type === "set") {
+  if (count === 0) {
     return { type: "keep" };
+  }
+  if (count === 1 && cue[0].type === "set") {
+    const tick = time - cue[0].time;
+    return {
+      type: "replace",
+      pattern: {
+        interval: tick,
+      },
+    };
   }
   if (count & 1) {
     return { type: "error" };
   }
-  const groups = count >> 1;
-  if (groups === 0) {
-    return { type: "keep" };
-  }
   const startTime = cue[0].time;
-  for (let i = 0; i < groups; i++) {
-    const get = cue[i * 2];
-    const set = cue[i * 2 + 1];
-    if (get.type !== "get" || set.type !== "set") {
+  for (let i = 0; i < count; i += 2) {
+    if (cue[i].type !== "get" || cue[i + 1].type !== "set") {
       return { type: "error" };
     }
   }
   const interval = cue[1].time - startTime;
-  const cueInterval = time - cue[(groups - 1) * 2].time;
-  for (let i = 1; i < groups; i++) {
-    const get = cue[i * 2];
-    const set = cue[i * 2 + 1];
-    const curTime = cueInterval * i;
+  const cueInterval = time - cue[count - 2].time;
+  for (let i = 2; i < count; i += 2) {
+    const curTime = cueInterval * (i / 2);
     if (
-      !almostEqual(get.time - startTime, curTime) ||
-      !almostEqual(set.time - startTime, curTime + interval)
+      !almostEqual(cue[i].time - startTime, curTime) ||
+      !almostEqual(cue[i + 1].time - startTime, curTime + interval)
     ) {
       return { type: "error" };
     }
