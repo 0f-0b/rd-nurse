@@ -32,6 +32,7 @@ const {
     alias: "t",
     description: "enable triangleshots",
     type: "boolean",
+    default: true,
   })
   .option("help", {
     alias: "h",
@@ -51,8 +52,7 @@ const {
   .parseSync();
 type ResultKey = keyof CheckLevelResult;
 const descs: { [K in ResultKey]: string } = {
-  invalidNormalCues: "Invalid oneshot cue",
-  invalidSquareCues: "Invalid squareshot cue",
+  invalidCues: "Invalid cue",
   unexpectedSkipshots: "Unexpected skipshot",
   overlappingSkipshots: "Overlapping skipshots",
   unexpectedFreezeshots: "Unexpected freezeshot",

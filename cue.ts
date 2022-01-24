@@ -1,5 +1,5 @@
 import type { OneshotCue } from "./level.ts";
-import { almostEqual, sortTime, unique } from "./util.ts";
+import { almostEqual, emplace, sortTime, unique } from "./util.ts";
 
 export interface PlayOneshotCuesOptions {
   ignoreSource?: boolean;
@@ -8,8 +8,7 @@ export interface PlayOneshotCuesOptions {
 }
 
 export interface CheckOneshotCuesResult {
-  invalidNormalCues: number[];
-  invalidSquareCues: number[];
+  invalidCues: number[];
 }
 
 export interface PlayOneshotCuesResult {
@@ -17,44 +16,27 @@ export interface PlayOneshotCuesResult {
   result: CheckOneshotCuesResult;
 }
 
-interface NormalPattern {
+interface Pattern {
   interval: number;
   offsets: number[];
+  squareshot: boolean;
 }
 
-interface SquarePattern {
-  interval: number;
-}
-
-interface PatternCue {
+interface Cue {
   type: "get" | "set";
   time: number;
 }
 
 interface Source {
   startTime: number;
-  normal: NormalPattern;
-  square: SquarePattern;
-  next: PatternCue[];
+  cueTime: number;
+  pattern: Pattern;
+  next: Cue[];
 }
 
-interface ReplaceResult<T> {
-  type: "replace";
-  pattern: T;
-}
-
-interface KeepResult {
-  type: "keep";
-}
-
-interface ErrorResult {
-  type: "error";
-}
-
-type CueResult<T> =
-  | ReplaceResult<T>
-  | KeepResult
-  | ErrorResult;
+type CueResult =
+  | { type: "replace"; pattern: Pattern }
+  | { type: "keep" | "error" };
 
 export interface ExpectedBeat {
   time: number;
@@ -74,14 +56,10 @@ function* repeat<T, U>(
 }
 
 function* playNormal(
-  source: Source,
+  { interval, offsets }: Pattern,
+  startTime: number,
   endTime: number,
 ): Generator<ExpectedBeat, void, unknown> {
-  const startTime = source.startTime;
-  if (startTime < 0) {
-    return;
-  }
-  const { interval, offsets } = source.normal;
   if (interval <= 0 || offsets.length === 0) {
     return;
   }
@@ -97,15 +75,11 @@ function* playNormal(
 }
 
 function* playSquare(
-  source: Source,
+  { offsets: [interval] }: Pattern,
   startTime: number,
   count: number,
-  triangleshot?: boolean,
+  triangleshot: boolean,
 ): Generator<ExpectedBeat, void, unknown> {
-  const { interval } = source.square;
-  if (interval <= 0) {
-    return;
-  }
   if (count === 2 && triangleshot) {
     for (const i of [1.5, 2]) {
       yield { time: startTime + interval * i, prev: -1, next: -1 };
@@ -117,110 +91,117 @@ function* playSquare(
   }
 }
 
-function checkNormalCue(
-  cue: PatternCue[],
-  time: number,
-): CueResult<NormalPattern> {
+function checkCue(cue: Cue[], endTime: number): CueResult {
   const count = cue.length;
   if (count === 0) {
     return { type: "keep" };
   }
+  const startTime = cue[0].time;
   if (cue[0].type === "set") {
     if (count !== 1) {
       return { type: "error" };
     }
-    const tick = time - cue[0].time;
+    const tick = endTime - startTime;
     return {
       type: "replace",
-      pattern: {
-        interval: tick * 2,
-        offsets: [tick],
-      },
+      pattern: { interval: tick * 2, offsets: [tick], squareshot: true },
     };
   }
-  const startTime = cue[0].time;
-  return {
-    type: "replace",
-    pattern: {
-      interval: time - startTime,
-      offsets: cue
-        .filter((offset) => offset.type === "set")
-        .map((offset) => offset.time - startTime),
-    },
-  };
-}
-
-function checkSquareCue(
-  cue: PatternCue[],
-  time: number,
-): CueResult<SquarePattern> {
-  const count = cue.length;
-  if (count === 0) {
-    return { type: "keep" };
-  }
-  if (count === 1 && cue[0].type === "set") {
-    const tick = time - cue[0].time;
-    return {
-      type: "replace",
-      pattern: {
-        interval: tick,
-      },
-    };
-  }
-  if (count & 1) {
-    return { type: "error" };
-  }
-  const startTime = cue[0].time;
-  for (let i = 0; i < count; i += 2) {
-    if (cue[i].type !== "get" || cue[i + 1].type !== "set") {
+  const length = endTime - startTime;
+  const offsets: { [K in Cue["type"]]: number[] } = { get: [], set: [] };
+  for (const { type, time } of cue) {
+    offsets[type].push(time - startTime);
+    if (type === "set" && almostEqual(time, startTime)) {
       return { type: "error" };
     }
   }
-  const interval = cue[1].time - startTime;
-  const cueInterval = time - cue[count - 2].time;
-  for (let i = 2; i < count; i += 2) {
-    const curTime = cueInterval * (i / 2);
-    if (
-      !almostEqual(cue[i].time - startTime, curTime) ||
-      !almostEqual(cue[i + 1].time - startTime, curTime + interval)
-    ) {
-      return { type: "error" };
+  const pulseCount = offsets.get.length;
+  const hitCount = offsets.set.length;
+  let divs = 1;
+  deduplicate:
+  for (let i = 1; i < hitCount; i++) {
+    if (hitCount % i !== 0) {
+      continue;
     }
+    const curDivs = hitCount / i;
+    const interval = length / curDivs;
+    for (let j = i; j < hitCount; j++) {
+      if (!almostEqual(offsets.set[j - i] + interval, offsets.set[j])) {
+        continue deduplicate;
+      }
+    }
+    divs = curDivs;
   }
   return {
     type: "replace",
     pattern: {
-      interval,
+      interval: length / divs,
+      offsets: offsets.set.slice(0, hitCount / divs),
+      squareshot: pulseCount === hitCount &&
+        offsets.get.every((offset, index) =>
+          almostEqual(offset, length * index)
+        ),
     },
   };
 }
 
-export function playOneshotCues(cues: readonly OneshotCue[], {
-  ignoreSource,
-  interruptiblePattern,
-  triangleshot,
-}: PlayOneshotCuesOptions = {}): PlayOneshotCuesResult {
+export function playOneshotCues(
+  cues: readonly OneshotCue[],
+  {
+    ignoreSource,
+    interruptiblePattern,
+    triangleshot = true,
+  }: PlayOneshotCuesOptions = {},
+): PlayOneshotCuesResult {
   const expected: ExpectedBeat[] = [];
   const result: CheckOneshotCuesResult = {
-    invalidNormalCues: [],
-    invalidSquareCues: [],
+    invalidCues: [],
+  };
+  const start = (source: Source, time: number) => {
+    const cueResult = checkCue(source.next, time);
+    source.next = [];
+    switch (cueResult.type) {
+      case "replace":
+        source.cueTime = time;
+        source.pattern = cueResult.pattern;
+        return true;
+      case "keep":
+        if (source.pattern.interval > 0) {
+          return true;
+        }
+        // fallthrough
+      case "error":
+        result.invalidCues.push(time);
+        return false;
+    }
+  };
+  const tonk = ({ pattern, cueTime }: Source, time: number, count: number) => {
+    if (pattern.squareshot) {
+      for (const beat of playSquare(pattern, time, count, triangleshot)) {
+        expected.push(beat);
+      }
+    } else {
+      result.invalidCues.push(cueTime);
+    }
+  };
+  const stop = ({ pattern, startTime }: Source, time: number) => {
+    if (startTime >= 0) {
+      for (const beat of playNormal(pattern, startTime, time)) {
+        expected.push(beat);
+      }
+    }
   };
   const sources = new Map<OneshotCue["source"], Source>();
   for (const cue of cues) {
     const time = cue.time;
-    const sourceId = ignoreSource ? "nurse" : cue.source;
-    let source = sources.get(sourceId);
-    if (!source) {
-      sources.set(
-        sourceId,
-        source = {
-          startTime: -1,
-          normal: { interval: 0, offsets: [] },
-          square: { interval: 0 },
-          next: [],
-        },
-      );
-    }
+    const source = sources[emplace](ignoreSource ? "nurse" : cue.source, {
+      insert: () => ({
+        startTime: -1,
+        cueTime: -1,
+        pattern: { interval: 0, offsets: [], squareshot: false },
+        next: [],
+      }),
+    });
     switch (cue.type) {
       case "get":
         source.next.push({ type: "get", time });
@@ -229,46 +210,25 @@ export function playOneshotCues(cues: readonly OneshotCue[], {
         source.next.push({ type: "set", time });
         break;
       case "go":
-        for (const beat of playNormal(source, time)) {
-          expected.push(beat);
+        stop(source, time);
+        if (start(source, time)) {
+          source.startTime = time;
         }
-        if (source.next.length !== 0) {
-          const cueResult = checkNormalCue(source.next, time);
-          if (cueResult.type === "error") {
-            result.invalidNormalCues.push(time);
-          } else if (cueResult.type === "replace") {
-            source.normal = cueResult.pattern;
-          }
-          source.next = [];
-        }
-        source.startTime = time;
         break;
       case "stop":
-        for (const beat of playNormal(source, time)) {
-          expected.push(beat);
-        }
+        stop(source, time);
         source.startTime = -1;
         break;
-      default:
+      default: {
         if (interruptiblePattern) {
-          for (const beat of playNormal(source, time)) {
-            expected.push(beat);
-          }
+          stop(source, time);
           source.startTime = -1;
         }
-        if (source.next.length !== 0) {
-          const cueResult = checkSquareCue(source.next, time);
-          if (cueResult.type === "error") {
-            result.invalidSquareCues.push(time);
-          } else if (cueResult.type === "replace") {
-            source.square = cueResult.pattern;
-          }
-          source.next = [];
-        }
-        for (const beat of playSquare(source, time, cue.type, triangleshot)) {
-          expected.push(beat);
+        if (start(source, time)) {
+          tonk(source, time, cue.type);
         }
         break;
+      }
     }
   }
   expected
@@ -276,7 +236,6 @@ export function playOneshotCues(cues: readonly OneshotCue[], {
     [unique]((a, b) =>
       almostEqual(a.time, b.time) && almostEqual(a.next, b.next)
     );
-  sortTime(result.invalidNormalCues);
-  sortTime(result.invalidSquareCues);
+  sortTime(result.invalidCues);
   return { expected, result };
 }

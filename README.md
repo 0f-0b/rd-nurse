@@ -33,8 +33,7 @@ incorrectly cued oneshots found in the level.
 
 - **`-t`**, **`--triangleshot`**
 
-  Treat "two" as a triangleshot cue. By default it is assumed to be a squareshot
-  cue.
+  Treat "two" as a triangleshot cue. This is the default.
 
 - **`-h`**, **`--help`**
 

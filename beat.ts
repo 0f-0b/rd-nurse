@@ -12,23 +12,21 @@ export interface CheckOneshotBeatsResult {
   missingHits: number[];
 }
 
-interface NormalResult {
-  type: "normal";
-  time: number;
-  delay: number;
-  skips: number | undefined;
-}
-
-interface ErrorResult {
-  type:
-    | "uncued"
-    | "unexpected_freezeshot"
-    | "unexpected_skipshot"
-    | "overlapping_skipshot";
-  time: number;
-}
-
-type BeatResult = NormalResult | ErrorResult;
+type BeatResult =
+  | {
+    type: "cued";
+    time: number;
+    delay: number;
+    skips: number | undefined;
+  }
+  | {
+    type:
+      | "uncued"
+      | "unexpected_freezeshot"
+      | "unexpected_skipshot"
+      | "overlapping_skipshot";
+    time: number;
+  };
 
 function addBeat(
   { time, skipshot, start, delay }: OneshotBeat,
@@ -58,9 +56,9 @@ function addBeat(
     if (!next.every((x) => almostEqual(first, x))) {
       return { type: "overlapping_skipshot", time };
     }
-    return { type: "normal", time, delay, skips: first };
+    return { type: "cued", time, delay, skips: first };
   }
-  return { type: "normal", time, delay, skips: undefined };
+  return { type: "cued", time, delay, skips: undefined };
 }
 
 export function checkOneshotBeats(
@@ -82,7 +80,7 @@ export function checkOneshotBeats(
   for (const beat of beats) {
     const beatResult = addBeat(beat, expected);
     switch (beatResult.type) {
-      case "normal": {
+      case "cued": {
         hit.push({ time: beatResult.time, delay: beatResult.delay });
         if (beatResult.skips !== undefined) {
           skipped.push(beatResult.skips);
