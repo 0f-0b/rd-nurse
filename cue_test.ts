@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.122.0/testing/asserts.ts";
+import { assertEquals } from "https://deno.land/std@0.126.0/testing/asserts.ts";
 import { playOneshotCues, type PlayOneshotCuesResult } from "./cue.ts";
 
 Deno.test("correct cues", () => {

@@ -1,10 +1,10 @@
-import RDLevel from "https://esm.sh/@auburnsummer/vitals@0.6.4/lib/rdlevel?pin=v64";
+import RDLevel from "https://esm.sh/@auburnsummer/vitals@0.6.4/lib/rdlevel?pin=v66";
 import type { TimeCache } from "./time.ts";
 import { barToBeat, beatToTime, initBarCache, initBeatCache } from "./time.ts";
 import { almostEqual, sortTime, unique } from "./util.ts";
 
 export type CueType = typeof cueTypes[number];
-const cueTypes = [1, 2, "go", "stop", "get", "set"] as const;
+const cueTypes = [1, 2, 3, 4, 5, "go", "stop", "get", "set"] as const;
 const cueTypeMap = new Map<string, (CueType | null)[]>([
   ["SayReaDyGetSetGoNew", ["get", "set", "get", "set", "go"]],
   ["SayGetSetGo", ["get", "set", "go"]],
@@ -19,6 +19,9 @@ const cueTypeMap = new Map<string, (CueType | null)[]>([
   ["JustSayAndStop", ["stop"]],
   ["Count1", [1]],
   ["Count2", [2]],
+  ["Count3", [3]],
+  ["Count4", [4]],
+  ["Count5", [5]],
   ["SayReadyGetSetGo", [null, null, "get", "set", "go"]],
 ]);
 export type CueSource = typeof cueSources[number];
