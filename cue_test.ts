@@ -219,3 +219,42 @@ Deno.test("triangleshot", () => {
     },
   );
 });
+
+Deno.test("regression test 1", () => {
+  assertEquals<PlayOneshotCuesResult>(
+    playOneshotCues([
+      { time: 2, type: "get", source: "nurse" },
+      { time: 2.5, type: "set", source: "nurse" },
+      { time: 3, type: "get", source: "nurse" },
+      { time: 3.5, type: "set", source: "nurse" },
+      { time: 4, type: 1, source: "nurse" },
+    ]),
+    {
+      expected: [
+        { time: 4.5, prev: -1, next: -1 },
+      ],
+      result: {
+        invalidCues: [],
+      },
+    },
+  );
+});
+
+Deno.test("regression test 2", () => {
+  assertEquals<PlayOneshotCuesResult>(
+    playOneshotCues([
+      { time: 2, type: "get", source: "nurse" },
+      { time: 2.5, type: "set", source: "nurse" },
+      { time: 3, type: "get", source: "nurse" },
+      { time: 3.25, type: "set", source: "nurse" },
+      { time: 4, type: 1, source: "nurse" },
+      { time: 6, type: 1, source: "nurse" },
+    ]),
+    {
+      expected: [],
+      result: {
+        invalidCues: [4, 6],
+      },
+    },
+  );
+});
