@@ -132,14 +132,15 @@ function checkCue(cue: Cue[], endTime: number): CueResult {
     }
     divs = curDivs;
   }
+  const interval = length / divs;
   return {
     type: "replace",
     pattern: {
-      interval: length / divs,
+      interval,
       offsets: offsets.set.slice(0, hitCount / divs),
       squareshot: pulseCount === hitCount &&
         offsets.get.every((offset, index) =>
-          almostEqual(offset, length * index)
+          almostEqual(offset, interval * index)
         ),
     },
   };
@@ -157,23 +158,26 @@ export function playOneshotCues(
   const result: CheckOneshotCuesResult = {
     invalidCues: [],
   };
-  const start = (source: Source, time: number) => {
-    const cueResult = checkCue(source.next, time);
-    source.next = [];
+  const validate = (source: Source, cueResult: CueResult) => {
     switch (cueResult.type) {
       case "replace":
-        source.cueTime = time;
         source.pattern = cueResult.pattern;
         return true;
       case "keep":
-        if (source.pattern.interval > 0) {
-          return true;
-        }
-        // fallthrough
+        return source.pattern.interval > 0;
       case "error":
-        result.invalidCues.push(time);
         return false;
     }
+  };
+  const start = (source: Source, time: number) => {
+    const valid = validate(source, checkCue(source.next, time));
+    if (valid) {
+      source.cueTime = time;
+    } else {
+      result.invalidCues.push(time);
+    }
+    source.next = [];
+    return valid;
   };
   const tonk = ({ pattern, cueTime }: Source, time: number, count: number) => {
     if (pattern.squareshot) {
