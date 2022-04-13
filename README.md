@@ -3,14 +3,14 @@
 ## Name
 
 rd-nurse - check [Rhythm Doctor](https://rhythmdr.com/) levels for illegal
-oneshots.
+oneshots and holds.
 
 ## Installation
 
 Make sure you [have Deno installed](https://deno.land/#installation), and then
 run the following in a terminal:
 
-<pre><code>deno install https://cdn.jsdelivr.net/gh/sjx233/rd-nurse@main/main.ts</code></pre>
+<pre><code>deno install -fr https://cdn.jsdelivr.net/gh/sjx233/rd-nurse@main/main.ts</code></pre>
 
 ## Synopsis
 
@@ -19,7 +19,7 @@ run the following in a terminal:
 ## Description
 
 **rd-nurse** reads a level from standard input, and prints the position of any
-incorrectly cued oneshots found in the level.
+incorrectly cued oneshots and bad holds found in the level.
 
 ## Options
 
@@ -33,7 +33,8 @@ incorrectly cued oneshots found in the level.
 
 - **`-t`**, **`--triangleshot`**
 
-  Treat "two" as a triangleshot cue. This is the default.
+  Treat "two" as a triangleshot cue. By default it is assumed to be a squareshot
+  cue.
 
 - **`-h`**, **`--help`**
 

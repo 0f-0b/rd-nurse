@@ -1,4 +1,4 @@
-import RDLevel from "https://esm.sh/@auburnsummer/vitals@0.6.4/lib/rdlevel?pin=v66";
+import RDLevel from "https://esm.sh/@auburnsummer/vitals@0.6.4/lib/rdlevel?pin=v77";
 import type { TimeCache } from "./time.ts";
 import { barToBeat, beatToTime, initBarCache, initBeatCache } from "./time.ts";
 import { almostEqual, sortTime, unique } from "./util.ts";

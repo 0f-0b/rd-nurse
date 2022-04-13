@@ -149,9 +149,9 @@ function checkCue(cue: Cue[], endTime: number): CueResult {
 export function playOneshotCues(
   cues: readonly OneshotCue[],
   {
-    ignoreSource,
-    interruptiblePattern,
-    triangleshot = true,
+    ignoreSource = false,
+    interruptiblePattern = false,
+    triangleshot = false,
   }: PlayOneshotCuesOptions = {},
 ): PlayOneshotCuesResult {
   const expected: ExpectedBeat[] = [];

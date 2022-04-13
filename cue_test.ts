@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.126.0/testing/asserts.ts";
+import { assertEquals } from "https://deno.land/std@0.134.0/testing/asserts.ts";
 import { playOneshotCues, type PlayOneshotCuesResult } from "./cue.ts";
 
 Deno.test("correct cues", () => {
@@ -29,7 +29,7 @@ Deno.test("correct cues", () => {
       { time: 27, type: "set", source: "nurse" },
       { time: 28, type: "go", source: "nurse" },
       { time: 32, type: 1, source: "nurse" },
-      { time: 33.5, type: 2, source: "nurse" },
+      { time: 34, type: 2, source: "nurse" },
       { time: 39, type: "stop", source: "nurse" },
     ]),
     {
@@ -56,7 +56,7 @@ Deno.test("correct cues", () => {
         { time: 33, prev: 31, next: 35 },
         { time: 35, prev: -1, next: -1 },
         { time: 35, prev: 33, next: 37 },
-        { time: 35.5, prev: -1, next: -1 },
+        { time: 36, prev: -1, next: -1 },
         { time: 37, prev: 35, next: 39 },
         { time: 39, prev: 37, next: 41 },
       ],
@@ -190,7 +190,7 @@ Deno.test("triangleshot", () => {
     {
       expected: [
         { time: 5, prev: -1, next: -1 },
-        { time: 7, prev: -1, next: -1 },
+        { time: 6.5, prev: -1, next: -1 },
         { time: 7.5, prev: -1, next: -1 },
       ],
       result: {
@@ -205,12 +205,12 @@ Deno.test("triangleshot", () => {
       { time: 4, type: 1, source: "nurse" },
       { time: 5.5, type: 2, source: "nurse" },
     ], {
-      triangleshot: false,
+      triangleshot: true,
     }),
     {
       expected: [
         { time: 5, prev: -1, next: -1 },
-        { time: 6.5, prev: -1, next: -1 },
+        { time: 7, prev: -1, next: -1 },
         { time: 7.5, prev: -1, next: -1 },
       ],
       result: {
