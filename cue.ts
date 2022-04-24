@@ -1,5 +1,5 @@
 import type { OneshotCue } from "./level.ts";
-import { almostEqual, emplace, sortTime, unique } from "./util.ts";
+import { almostEqual, cleanUp } from "./util.ts";
 
 export interface PlayOneshotCuesOptions {
   ignoreSource?: boolean;
@@ -196,16 +196,24 @@ export function playOneshotCues(
     }
   };
   const sources = new Map<OneshotCue["source"], Source>();
+  const getSource = (id: OneshotCue["source"]) => {
+    let source = sources.get(id);
+    if (source === undefined) {
+      sources.set(
+        id,
+        source = {
+          startTime: -1,
+          cueTime: -1,
+          pattern: { interval: 0, offsets: [], squareshot: false },
+          next: [],
+        },
+      );
+    }
+    return source;
+  };
   for (const cue of cues) {
     const time = cue.time;
-    const source = sources[emplace](ignoreSource ? "nurse" : cue.source, {
-      insert: () => ({
-        startTime: -1,
-        cueTime: -1,
-        pattern: { interval: 0, offsets: [], squareshot: false },
-        next: [],
-      }),
-    });
+    const source = getSource(ignoreSource ? "nurse" : cue.source);
     switch (cue.type) {
       case "get":
         source.next.push({ type: "get", time });
@@ -235,11 +243,7 @@ export function playOneshotCues(
       }
     }
   }
-  expected
-    .sort((a, b) => a.time - b.time || a.next - b.next)
-    [unique]((a, b) =>
-      almostEqual(a.time, b.time) && almostEqual(a.next, b.next)
-    );
-  sortTime(result.invalidCues);
+  expected.sort((a, b) => a.time - b.time || a.next - b.next);
+  cleanUp(result.invalidCues);
   return { expected, result };
 }

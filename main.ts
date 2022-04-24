@@ -1,10 +1,10 @@
-import { joinToString } from "https://deno.land/std@0.134.0/collections/join_to_string.ts";
-import { readAllSync } from "https://deno.land/std@0.134.0/streams/conversion.ts";
-import { Command } from "https://deno.land/x/cliffy@v0.23.0/command/mod.ts";
-import type { CheckLevelResult } from "./mod.ts";
+import { Command } from "./deps/cliffy/command.ts";
+import { joinToString } from "./deps/std/collections/join_to_string.ts";
+import { readAllSync } from "./deps/std/streams/conversion.ts";
 import {
   beatToBar,
   checkLevel,
+  type CheckLevelResult,
   formatTime,
   parseLevel,
   timeToBeat,

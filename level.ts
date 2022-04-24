@@ -1,7 +1,11 @@
-import RDLevel from "https://esm.sh/@auburnsummer/vitals@0.6.4/lib/rdlevel?pin=v77";
-import type { TimeCache } from "./time.ts";
-import { barToBeat, beatToTime, initBarCache, initBeatCache } from "./time.ts";
-import { almostEqual, sortTime, unique } from "./util.ts";
+import { parseRDLevel } from "./deps/@auburnsummer/vitals/rdlevel.ts";
+import {
+  barToBeat,
+  beatToTime,
+  initBarCache,
+  initBeatCache,
+  type TimeCache,
+} from "./time.ts";
 
 export type CueType = typeof cueTypes[number];
 const cueTypes = [1, 2, 3, 4, 5, "go", "stop", "get", "set"] as const;
@@ -69,7 +73,7 @@ interface Freetime {
 }
 
 export function parseLevel(level: string): Level {
-  const { rows, events } = RDLevel.parse(level);
+  const { rows, events } = parseRDLevel(level);
   const enabledRows = new Set<number>();
   for (const { row, muteBeats } of rows) {
     if (!muteBeats) {
@@ -213,29 +217,18 @@ export function parseLevel(level: string): Level {
       }
     }
   }
-  oneshotCues
-    .sort((a, b) =>
-      cueTypes.indexOf(a.type) - cueTypes.indexOf(b.type) ||
-      cueSources.indexOf(a.source) - cueSources.indexOf(b.source) ||
-      a.time - b.time
-    )
-    [unique]((a, b) =>
-      a.type === b.type && a.source === b.source && almostEqual(a.time, b.time)
-    )
-    .sort((a, b) => a.time - b.time);
-  oneshotBeats
-    .sort((a, b) => Number(a.skipshot) - Number(b.skipshot) || a.time - b.time)
-    [unique]((a, b) => a.skipshot === b.skipshot && almostEqual(a.time, b.time))
-    .sort((a, b) => a.time - b.time);
-  sortTime(hits);
-  holds
-    .sort((a, b) => a.release - b.release || a.hit - b.hit)
-    [unique]((a, b) =>
-      almostEqual(a.release, b.release) && almostEqual(a.hit, b.hit)
-    )
-    .sort((a, b) => a.hit - b.hit)
-    [unique]((a, b) =>
-      almostEqual(a.release, b.release) && almostEqual(a.hit, b.hit)
-    );
+  oneshotCues.sort((a, b) =>
+    a.time - b.time ||
+    cueTypes.indexOf(a.type) - cueTypes.indexOf(b.type) ||
+    cueSources.indexOf(a.source) - cueSources.indexOf(b.source)
+  );
+  oneshotBeats.sort((a, b) =>
+    a.time - b.time ||
+    Number(a.skipshot) - Number(b.skipshot) ||
+    a.start - b.start ||
+    a.delay - b.delay
+  );
+  hits.sort((a, b) => a - b);
+  holds.sort((a, b) => a.hit - b.hit || a.release - b.release);
   return { barCache, beatCache, oneshotCues, oneshotBeats, hits, holds };
 }

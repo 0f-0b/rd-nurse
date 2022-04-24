@@ -1,4 +1,4 @@
-import { partitionPoint } from "./util.ts";
+import { partitionPoint } from "./collections/partition_point.ts";
 
 export type TimeCache = [bar: number, beat: number, cpb: number][];
 

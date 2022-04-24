@@ -1,6 +1,6 @@
 import type { ExpectedBeat } from "./cue.ts";
 import type { Hold, OneshotBeat } from "./level.ts";
-import { almostEqual, sortTime } from "./util.ts";
+import { almostEqual, cleanUp } from "./util.ts";
 
 export interface CheckOneshotBeatsResult {
   unexpectedSkipshots: number[];
@@ -126,13 +126,13 @@ export function checkOneshotBeats(
       result.missingHits.push(time);
     }
   }
-  sortTime(result.unexpectedSkipshots);
-  sortTime(result.overlappingSkipshots);
-  sortTime(result.unexpectedFreezeshots);
-  sortTime(result.overlappingFreezeshots);
-  sortTime(result.uncuedHits);
-  sortTime(result.skippedHits);
-  sortTime(result.missingHits);
+  cleanUp(result.unexpectedSkipshots);
+  cleanUp(result.overlappingSkipshots);
+  cleanUp(result.unexpectedFreezeshots);
+  cleanUp(result.overlappingFreezeshots);
+  cleanUp(result.uncuedHits);
+  cleanUp(result.skippedHits);
+  cleanUp(result.missingHits);
   return result;
 }
 
@@ -162,7 +162,7 @@ export function checkHolds(hits: number[], holds: Hold[]): CheckHoldsResult {
       result.overlappingHolds.push(hit);
     }
   }
-  sortTime(result.hitOnHoldRelease);
-  sortTime(result.overlappingHolds);
+  cleanUp(result.hitOnHoldRelease);
+  cleanUp(result.overlappingHolds);
   return result;
 }
