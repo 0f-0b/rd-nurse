@@ -1,4 +1,4 @@
-import { parseRDLevel } from "./deps/@auburnsummer/vitals/rdlevel.ts";
+import { RDLevel } from "./deps/@auburnsummer/vitals/rdlevel.ts";
 import {
   barToBeat,
   beatToTime,
@@ -73,7 +73,7 @@ interface Freetime {
 }
 
 export function parseLevel(level: string): Level {
-  const { rows, events } = parseRDLevel(level);
+  const { rows, events } = RDLevel.parse(level);
   const enabledRows = new Set<number>();
   for (const { row, muteBeats } of rows) {
     if (!muteBeats) {

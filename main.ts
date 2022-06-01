@@ -13,9 +13,11 @@ import {
 await new Command()
   .name("rd-nurse")
   .usage("[options]")
-  .description(
-    "Checks a Rhythm Doctor level for illegal oneshots and holds.\n\nThe level is read from stdin.",
-  )
+  .description(`
+    Checks a Rhythm Doctor level for illegal oneshots and holds.
+
+    The level is read from stdin.
+  `)
   .option(
     "-s, --ignore-source",
     "Ignore the voice sources of the cues.",
