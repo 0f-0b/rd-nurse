@@ -12,18 +12,18 @@ import {
 } from "./mod.ts";
 
 type ResultKey = keyof CheckLevelResult;
-const descs: { [K in ResultKey]: string } = {
-  invalidCues: "Invalid cue",
-  unexpectedSkipshots: "Unexpected skipshot",
-  overlappingSkipshots: "Overlapping skipshots",
-  unexpectedFreezeshots: "Unexpected freezeshot",
-  overlappingFreezeshots: "Overlapping freezeshots",
-  uncuedHits: "Uncued hit",
-  skippedHits: "Skipped hit",
-  missingHits: "Missing hit",
-  hitOnHoldRelease: "Hit on hold release",
-  overlappingHolds: "Overlapping holds",
-};
+const descs: [ResultKey, string][] = [
+  ["invalidCues", "Invalid cue"],
+  ["unexpectedSkipshots", "Unexpected skipshot"],
+  ["overlappingSkipshots", "Overlapping skipshots"],
+  ["unexpectedFreezeshots", "Unexpected freezeshot"],
+  ["overlappingFreezeshots", "Overlapping freezeshots"],
+  ["uncuedHits", "Uncued hit"],
+  ["skippedHits", "Skipped hit"],
+  ["missingHits", "Missing hit"],
+  ["hitOnHoldRelease", "Hit on hold release"],
+  ["overlappingHolds", "Overlapping holds"],
+];
 await new class extends Command {
   error(e: Error): never {
     this.showHelp();
@@ -69,7 +69,7 @@ await new class extends Command {
     });
     const { barCache, beatCache } = level;
     let count = 0;
-    for (const [key, desc] of Object.entries(descs) as [ResultKey, string][]) {
+    for (const [key, desc] of descs) {
       const pos = result[key];
       if (pos.length === 0) {
         continue;

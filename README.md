@@ -10,7 +10,7 @@ oneshots and holds.
 Make sure you [have Deno installed](https://deno.land/#installation), and then
 run the following in a terminal:
 
-<pre><code>deno install -fr https://cdn.jsdelivr.net/gh/sjx233/rd-nurse@main/main.ts</code></pre>
+<pre><code>deno install -fr https://cdn.jsdelivr.net/gh/0f-0b/rd-nurse@main/main.ts</code></pre>
 
 ## Synopsis
 
@@ -51,4 +51,4 @@ leading to correctly cued oneshots being reported as uncued or miscued.
 
 ## See Also
 
-- GitHub repository: <https://github.com/sjx233/rd-nurse>.
+- GitHub repository: <https://github.com/0f-0b/rd-nurse>.
