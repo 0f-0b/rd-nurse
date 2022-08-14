@@ -1,12 +1,14 @@
+import { toLength } from "./to_length.ts";
+
 export function partitionPoint<T>(
-  arr: readonly T[],
-  pred: (value: T, index: number, arr: readonly T[]) => unknown,
+  arr: ArrayLike<T>,
+  pred: (value: T) => unknown,
 ): number {
   let l = 0;
-  let r = arr.length;
+  let r = toLength(arr.length);
   while (l < r) {
-    const m = (l + r) >>> 1;
-    if (pred(arr[m], m, arr)) {
+    const m = Math.floor((l + r) / 2);
+    if (pred(arr[m])) {
       l = m + 1;
     } else {
       r = m;

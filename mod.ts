@@ -6,29 +6,54 @@ import {
 } from "./beat.ts";
 import {
   type CheckOneshotCuesResult,
+  type ExpectedBeat,
   playOneshotCues,
   type PlayOneshotCuesOptions,
+  type PlayOneshotCuesResult,
 } from "./cue.ts";
-import { type Level, parseLevel } from "./level.ts";
-import type { TimeCache } from "./time.ts";
+import {
+  type CueSource,
+  type CueType,
+  type Level,
+  type OneshotBeat,
+  type OneshotCue,
+  parseLevel,
+} from "./level.ts";
+import {
+  barToBeat,
+  beatToBar,
+  beatToTime,
+  type TimeCache,
+  timeToBeat,
+} from "./time.ts";
 
-export type {
-  CheckHoldsResult,
-  CheckOneshotBeatsResult,
-  CheckOneshotCuesResult,
-  Level,
-  PlayOneshotCuesOptions,
-  TimeCache,
+export {
+  barToBeat,
+  beatToBar,
+  beatToTime,
+  checkHolds,
+  type CheckHoldsResult,
+  checkOneshotBeats,
+  type CheckOneshotBeatsResult,
+  type CheckOneshotCuesResult,
+  type CueSource,
+  type CueType,
+  type ExpectedBeat,
+  type Level,
+  type OneshotBeat,
+  type OneshotCue,
+  parseLevel,
+  playOneshotCues,
+  type PlayOneshotCuesOptions,
+  type PlayOneshotCuesResult,
+  type TimeCache,
+  timeToBeat,
 };
-export { checkHolds, checkOneshotBeats, parseLevel, playOneshotCues };
-export type { ExpectedBeat, PlayOneshotCuesResult } from "./cue.ts";
-export type { CueSource, CueType, OneshotBeat, OneshotCue } from "./level.ts";
-export { barToBeat, beatToBar, beatToTime, timeToBeat } from "./time.ts";
-
 export type CheckLevelOptions = PlayOneshotCuesOptions;
-
-export interface CheckLevelResult
-  extends CheckOneshotCuesResult, CheckOneshotBeatsResult, CheckHoldsResult {}
+export type CheckLevelResult =
+  & CheckOneshotCuesResult
+  & CheckOneshotBeatsResult
+  & CheckHoldsResult;
 
 export function checkLevel(
   level: Level,

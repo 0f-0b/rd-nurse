@@ -10,11 +10,13 @@ oneshots and holds.
 Make sure you [have Deno installed](https://deno.land/#installation), and then
 run the following in a terminal:
 
-<pre><code>deno install -fr https://cdn.jsdelivr.net/gh/0f-0b/rd-nurse@main/main.ts</code></pre>
+```shell
+deno install -fr https://cdn.jsdelivr.net/gh/0f-0b/rd-nurse@main/main.ts
+```
 
 ## Synopsis
 
-<pre><code><b>rd-nurse </b>[<i>OPTION</i>]...</code></pre>
+<pre><code><b>rd-nurse</b> [<i>OPTION</i>]...</code></pre>
 
 ## Description
 

@@ -1,4 +1,5 @@
-import { parseRDLevel } from "./deps/@auburnsummer/vitals/rdlevel.ts";
+import { parseRDLevel } from "./deps/vitals/rdlevel.ts";
+
 import {
   barToBeat,
   beatToTime,
