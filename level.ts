@@ -91,8 +91,7 @@ export function parseLevel(level: string): Level {
   const hits: number[] = [];
   const holds: Hold[] = [];
   const freetimes: Freetime[] = [];
-
-  function addClassicBeat(beat: number, hold: number): void {
+  const addClassicBeat = (beat: number, hold: number) => {
     const [hit] = beatToTime(beatCache, beat);
     if (hold) {
       const [release] = beatToTime(beatCache, beat + hold);
@@ -100,8 +99,7 @@ export function parseLevel(level: string): Level {
     } else {
       hits.push(hit);
     }
-  }
-
+  };
   for (const event of activeEvents) {
     if (event.if || event.tag) {
       continue;

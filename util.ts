@@ -2,7 +2,7 @@ export function almostEqual(a: number, b: number): boolean {
   return Math.abs(a - b) * 4096 <= Math.abs(a) + Math.abs(b);
 }
 
-export function cleanUp(arr: number[]): void {
+export function cleanUp(arr: number[]): undefined {
   const length = arr.length;
   if (length === 0) {
     return;

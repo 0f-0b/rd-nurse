@@ -1,10 +1,10 @@
 import {
   Command,
   ValidationError,
-} from "https://deno.land/x/cliffy@v0.24.3/command/mod.ts";
+} from "https://deno.land/x/cliffy@v0.25.1/command/mod.ts";
 import { bold, red } from "../std/fmt/colors.ts";
 
-export * from "https://deno.land/x/cliffy@v0.24.3/command/mod.ts";
+export * from "https://deno.land/x/cliffy@v0.25.1/command/mod.ts";
 Object.defineProperty(Command.prototype, "error", {
   value: {
     error(this: Command, e: Error): never {

@@ -47,7 +47,7 @@ export interface ExpectedBeat {
 function* repeat<T, U>(
   arr: readonly T[],
   selector: (value: T, group: number) => U,
-): Generator<U, never, unknown> {
+): Generator<U, never> {
   for (let i = 0;; i++) {
     for (const elem of arr) {
       yield selector(elem, i);
@@ -59,7 +59,7 @@ function* playNormal(
   { interval, offsets }: Pattern,
   startTime: number,
   endTime: number,
-): Generator<ExpectedBeat, void, unknown> {
+): Generator<ExpectedBeat, undefined> {
   if (interval <= 0 || offsets.length === 0) {
     return;
   }
@@ -79,7 +79,7 @@ function* playSquare(
   startTime: number,
   count: number,
   triangleshot: boolean,
-): Generator<ExpectedBeat, void, unknown> {
+): Generator<ExpectedBeat, undefined> {
   if (count === 2 && triangleshot) {
     for (const i of [1.5, 2]) {
       yield { time: startTime + interval * i, prev: -1, next: -1 };
@@ -89,6 +89,7 @@ function* playSquare(
       yield { time: startTime + interval * i, prev: -1, next: -1 };
     }
   }
+  return;
 }
 
 function checkCue(cue: Cue[], endTime: number): CueResult {
