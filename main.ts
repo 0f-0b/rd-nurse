@@ -15,8 +15,7 @@ import {
 } from "./mod.ts";
 
 const decoder = new TextDecoder("utf-8", { fatal: true });
-type ResultKey = keyof CheckLevelResult;
-const descs: [ResultKey, string][] = [
+const descs: [keyof CheckLevelResult, string][] = [
   ["invalidCues", "Invalid cue"],
   ["unexpectedSkipshots", "Unexpected skipshot"],
   ["overlappingSkipshots", "Overlapping skipshots"],

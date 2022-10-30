@@ -1,1 +1,1 @@
-export * from "https://deno.land/std@0.157.0/streams/conversion.ts";
+export * from "https://deno.land/std@0.161.0/streams/conversion.ts";

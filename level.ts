@@ -1,5 +1,4 @@
-import { parseRDLevel } from "./deps/vitals/rdlevel.ts";
-
+import { parseRDLevel } from "./rdlevel_parser.ts";
 import {
   barToBeat,
   beatToTime,
@@ -31,7 +30,7 @@ const cueTypeMap = new Map<string, (CueType | null)[]>([
 ]);
 export type CueSource = typeof cueSources[number];
 const cueSources = ["nurse", "ian"] as const;
-const cueSourceMap = new Map<string, CueSource>([
+const cueSourceMap = new Map<string | undefined, CueSource>([
   ["Nurse", "nurse"],
   ["NurseTired", "nurse"],
   ["IanExcited", "ian"],
@@ -73,8 +72,79 @@ interface Freetime {
   pulse: number;
 }
 
+declare namespace RD {
+  interface Level {
+    rows: Row[];
+    events: Event[];
+  }
+
+  interface Row {
+    row: number;
+    muteBeats: boolean;
+  }
+
+  interface EventBase {
+    bar: number;
+    beat: number;
+    if?: string;
+    tag?: string;
+    active?: boolean;
+  }
+
+  interface SayReadyGetSetGoEvent extends EventBase {
+    type: "SayReadyGetSetGo";
+    phraseToSay: string;
+    voiceSource?: string;
+    tick: number;
+  }
+
+  interface AddOneshotBeatEvent extends EventBase {
+    type: "AddOneshotBeat";
+    row: number;
+    loops?: number;
+    interval?: number;
+    delay?: number;
+    skipshot?: boolean;
+    tick: number;
+  }
+
+  interface AddClassicBeatEvent extends EventBase {
+    type: "AddClassicBeat";
+    row: number;
+    tick: number;
+    hold?: number;
+  }
+
+  interface AddFreeTimeBeatEvent extends EventBase {
+    type: "AddFreeTimeBeat";
+    row: number;
+    hold?: number;
+    pulse: number;
+  }
+
+  interface PulseFreeTimeBeatEvent extends EventBase {
+    type: "PulseFreeTimeBeat";
+    row: number;
+    hold?: number;
+    action: string;
+    customPulse: number;
+  }
+
+  interface FinishLevelEvent extends EventBase {
+    type: "FinishLevel";
+  }
+
+  type Event =
+    | SayReadyGetSetGoEvent
+    | AddOneshotBeatEvent
+    | AddClassicBeatEvent
+    | AddFreeTimeBeatEvent
+    | PulseFreeTimeBeatEvent
+    | FinishLevelEvent;
+}
+
 export function parseLevel(level: string): Level {
-  const { rows, events } = parseRDLevel(level);
+  const { rows, events } = parseRDLevel(level) as RD.Level;
   const enabledRows = new Set<number>();
   for (const { row, muteBeats } of rows) {
     if (!muteBeats) {
@@ -82,8 +152,8 @@ export function parseLevel(level: string): Level {
     }
   }
   const activeEvents = events
-    .filter((event: { active?: boolean }) => event.active !== false)
-    .sort((a: { bar: number }, b: { bar: number }) => a.bar - b.bar);
+    .filter((event) => event.active !== false)
+    .sort((a, b) => a.bar - b.bar);
   const barCache = initBarCache(activeEvents);
   const beatCache = initBeatCache(barCache, activeEvents);
   const oneshotCues: OneshotCue[] = [];
