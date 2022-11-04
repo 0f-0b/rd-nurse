@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run
+#!/usr/bin/env -S deno run --lock --
 
 import { Command } from "./deps/cliffy/command.ts";
 import { joinToString } from "./deps/std/collections/join_to_string.ts";
