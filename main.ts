@@ -1,9 +1,9 @@
-#!/usr/bin/env -S deno run --lock --
+#!/usr/bin/env -S deno run
 
 import { Command } from "./deps/cliffy/command.ts";
 import { joinToString } from "./deps/std/collections/join_to_string.ts";
 import { yellow } from "./deps/std/fmt/colors.ts";
-import { readAllSync } from "./deps/std/streams/conversion.ts";
+import { readAllSync } from "./deps/std/streams/read_all.ts";
 
 import {
   beatToBar,

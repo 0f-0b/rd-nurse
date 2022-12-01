@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "lint": "deno fmt --check && deno lint && deno check --lock --remote main.ts",
-    "test": "deno test --lock --check=all"
+    "lint": "deno fmt --check && deno lint && deno check --remote main.ts",
+    "test": "deno test --check=all"
   }
 }
