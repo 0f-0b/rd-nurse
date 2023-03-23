@@ -1,3 +1,5 @@
+import * as RD from "./deps/rd_schema/level.d.ts";
+
 import { parseRDLevel } from "./rdlevel_parser.ts";
 import {
   barToBeat,
@@ -9,34 +11,49 @@ import {
 
 export type CueType = typeof cueTypes[number];
 const cueTypes = [1, 2, 3, 4, 5, "go", "stop", "get", "set"] as const;
-const cueTypeMap = new Map<string, (CueType | null)[]>([
-  ["SayReaDyGetSetGoNew", ["get", "set", "get", "set", "go"]],
-  ["SayGetSetGo", ["get", "set", "go"]],
-  ["SayReaDyGetSetOne", ["get", "set", "get", "set", 1]],
-  ["SayGetSetOne", ["get", "set", 1]],
-  ["JustSayRea", ["get"]],
-  ["JustSayDy", ["set"]],
-  ["JustSayGet", ["get"]],
-  ["JustSaySet", ["set"]],
-  ["JustSayGo", ["go"]],
-  ["JustSayStop", ["stop"]],
-  ["JustSayAndStop", ["stop"]],
-  ["Count1", [1]],
-  ["Count2", [2]],
-  ["Count3", [3]],
-  ["Count4", [4]],
-  ["Count5", [5]],
-  ["SayReadyGetSetGo", [null, null, "get", "set", "go"]],
-]);
+const cueTypeMap = Object.freeze<
+  Partial<
+    Record<
+      NonNullable<RD.SayReadyGetSetGoEvent["phraseToSay"]>,
+      (CueType | null)[]
+    >
+  >
+>({
+  // @ts-expect-error Remove prototype
+  __proto__: null,
+  "SayReaDyGetSetGoNew": ["get", "set", "get", "set", "go"],
+  "SayGetSetGo": ["get", "set", "go"],
+  "SayReaDyGetSetOne": ["get", "set", "get", "set", 1],
+  "SayGetSetOne": ["get", "set", 1],
+  "JustSayRea": ["get"],
+  "JustSayDy": ["set"],
+  "JustSayGet": ["get"],
+  "JustSaySet": ["set"],
+  "JustSayGo": ["go"],
+  "JustSayStop": ["stop"],
+  "JustSayAndStop": ["stop"],
+  "Count1": [1],
+  "Count2": [2],
+  "Count3": [3],
+  "Count4": [4],
+  "Count5": [5],
+  "SayReadyGetSetGo": [null, null, "get", "set", "go"],
+});
 export type CueSource = typeof cueSources[number];
 const cueSources = ["nurse", "ian"] as const;
-const cueSourceMap = new Map<string | undefined, CueSource>([
-  ["Nurse", "nurse"],
-  ["NurseTired", "nurse"],
-  ["IanExcited", "ian"],
-  ["IanCalm", "ian"],
-  ["IanSlow", "ian"],
-]);
+const cueSourceMap = Object.freeze<
+  Partial<
+    Record<NonNullable<RD.SayReadyGetSetGoEvent["voiceSource"]>, CueSource>
+  >
+>({
+  // @ts-expect-error Remove prototype
+  __proto__: null,
+  "Nurse": "nurse",
+  "NurseTired": "nurse",
+  "IanExcited": "ian",
+  "IanCalm": "ian",
+  "IanSlow": "ian",
+});
 
 export interface OneshotCue {
   time: number;
@@ -70,77 +87,6 @@ interface Freetime {
   cpb: number;
   beat: number;
   pulse: number;
-}
-
-declare namespace RD {
-  interface Level {
-    rows: Row[];
-    events: Event[];
-  }
-
-  interface Row {
-    row: number;
-    muteBeats: boolean;
-  }
-
-  interface EventBase {
-    bar: number;
-    beat: number;
-    if?: string;
-    tag?: string;
-    active?: boolean;
-  }
-
-  interface SayReadyGetSetGoEvent extends EventBase {
-    type: "SayReadyGetSetGo";
-    phraseToSay: string;
-    voiceSource?: string;
-    tick: number;
-  }
-
-  interface AddOneshotBeatEvent extends EventBase {
-    type: "AddOneshotBeat";
-    row: number;
-    loops?: number;
-    interval?: number;
-    delay?: number;
-    skipshot?: boolean;
-    tick: number;
-  }
-
-  interface AddClassicBeatEvent extends EventBase {
-    type: "AddClassicBeat";
-    row: number;
-    tick: number;
-    hold?: number;
-  }
-
-  interface AddFreeTimeBeatEvent extends EventBase {
-    type: "AddFreeTimeBeat";
-    row: number;
-    hold?: number;
-    pulse: number;
-  }
-
-  interface PulseFreeTimeBeatEvent extends EventBase {
-    type: "PulseFreeTimeBeat";
-    row: number;
-    hold?: number;
-    action: string;
-    customPulse: number;
-  }
-
-  interface FinishLevelEvent extends EventBase {
-    type: "FinishLevel";
-  }
-
-  type Event =
-    | SayReadyGetSetGoEvent
-    | AddOneshotBeatEvent
-    | AddClassicBeatEvent
-    | AddFreeTimeBeatEvent
-    | PulseFreeTimeBeatEvent
-    | FinishLevelEvent;
 }
 
 export function parseLevel(level: string): Level {
@@ -179,14 +125,13 @@ export function parseLevel(level: string): Level {
     switch (event.type) {
       case "SayReadyGetSetGo": {
         const tick = event.tick;
-        const parts = cueTypeMap.get(event.phraseToSay) ?? [];
-        const source = cueSourceMap.get(event.voiceSource) ?? "nurse";
+        const parts = cueTypeMap[event.phraseToSay ?? "SayReadyGetSetGo"] ?? [];
+        const source = cueSourceMap[event.voiceSource ?? "Nurse"] ?? "nurse";
         const [time, spb] = beatToTime(beatCache, beat);
-        for (let i = 0, len = parts.length; i < len; i++) {
-          const part = parts[i];
+        for (const [pos, part] of parts.entries()) {
           if (part !== null) {
             oneshotCues.push({
-              time: time + (tick * i) * spb,
+              time: time + (tick * pos) * spb,
               type: part,
               source,
             });
@@ -206,15 +151,15 @@ export function parseLevel(level: string): Level {
           skipshot = false,
         } = event;
         const [time, spb] = beatToTime(beatCache, beat);
-        for (let i = 0; i <= loops; i++) {
+        for (let pos = 0; pos <= loops; pos++) {
           oneshotBeats.push({
             time: time +
-              (interval * i + (delay ? interval - delay : tick)) * spb,
-            skipshot: skipshot && i === loops,
-            start: time + (interval * i) * spb,
+              (interval * pos + (delay ? interval - delay : tick)) * spb,
+            skipshot: skipshot && pos === loops,
+            start: time + (interval * pos) * spb,
             delay: delay * spb,
           });
-          hits.push(time + (interval * i + (delay ? interval : tick)) * spb);
+          hits.push(time + (interval * pos + (delay ? interval : tick)) * spb);
         }
         break;
       }
