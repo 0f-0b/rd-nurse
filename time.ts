@@ -1,105 +1,142 @@
+import * as RD from "./deps/rd_schema/level.d.ts";
+
 import { partitionPoint } from "./collections/partition_point.ts";
 
-export type TimeCache = [bar: number, beat: number, cpb: number][];
+export interface CpbChange {
+  bar: number;
+  beat: number;
+  cpb: number;
+}
 
-// deno-lint-ignore no-explicit-any
-export function initBarCache(events: any[]): TimeCache {
-  const cpbs = new Map<number, number>([
-    [0, 8],
-  ]);
+export function getCpbChanges(events: readonly RD.Event[]): CpbChange[] {
+  const cpbChanges = new Map([[0, 8]]);
   for (const event of events) {
     if (event.if || event.tag) {
       continue;
     }
     switch (event.type) {
       case "SetCrotchetsPerBar":
-        cpbs.set(event.bar - 1, event.crotchetsPerBar);
+        cpbChanges.set(event.bar - 1, event.crotchetsPerBar ?? 8);
         break;
     }
   }
-  const result: TimeCache = [];
-  let cbar = 0;
-  let cbeat = 0;
-  let ccpb = 0;
-  for (const [bar, cpb] of cpbs) {
-    if (cpb === ccpb) {
+  const result: CpbChange[] = [];
+  let bar = 0;
+  let beat = 0;
+  let cpb = 0;
+  for (const [newBar, newCpb] of cpbChanges) {
+    if (newCpb === cpb) {
       continue;
     }
-    cbeat += (bar - cbar) * ccpb;
-    cbar = bar;
-    ccpb = cpb;
-    result.push([cbar, cbeat, ccpb]);
+    beat += (newBar - bar) * cpb;
+    bar = newBar;
+    cpb = newCpb;
+    result.push({ bar, beat, cpb });
   }
   return result;
 }
 
 export function barToBeat(
-  barCache: TimeCache,
+  cpbChanges: readonly CpbChange[],
   bar: number,
-): [beat: number, cpb: number] {
-  const [cbar, cbeat, ccpb] =
-    barCache[partitionPoint(barCache, ([cbar]) => cbar <= bar) - 1];
-  return [cbeat + (bar - cbar) * ccpb, ccpb];
+): { beat: number; cpb: number } {
+  const lastCpbChange = cpbChanges[
+    partitionPoint(cpbChanges, (change) => change.bar <= bar) - 1
+  ];
+  return {
+    beat: lastCpbChange.beat + (bar - lastCpbChange.bar) * lastCpbChange.cpb,
+    cpb: lastCpbChange.cpb,
+  };
+}
+
+export interface BarAndBeat {
+  bar: number;
+  beat: number;
 }
 
 export function beatToBar(
-  barCache: TimeCache,
+  cpbChanges: readonly CpbChange[],
   beat: number,
-): [bar: number, beat: number] {
-  const [cbar, cbeat, ccpb] =
-    barCache[partitionPoint(barCache, ([, cbeat]) => cbeat <= beat) - 1];
-  const dbeat = beat - cbeat;
-  const rbeat = dbeat % ccpb;
-  return [cbar + (dbeat - rbeat) / ccpb, rbeat];
+): BarAndBeat {
+  const lastCpbChange = cpbChanges[
+    partitionPoint(cpbChanges, (change) => change.beat <= beat) - 1
+  ];
+  const beatFromLastCpbChange = beat - lastCpbChange.beat;
+  const beatFromStartOfBar = beatFromLastCpbChange % lastCpbChange.cpb;
+  return {
+    bar: lastCpbChange.bar +
+      (beatFromLastCpbChange - beatFromStartOfBar) / lastCpbChange.cpb,
+    beat: beatFromStartOfBar,
+  };
 }
 
-// deno-lint-ignore no-explicit-any
-export function initBeatCache(barCache: TimeCache, events: any[]): TimeCache {
-  const spbs = new Map<number, number>([
-    [0, 60 / (events.find((event) => event.type === "PlaySong")?.bpm ?? 100)],
-  ]);
+export interface TempoChange {
+  beat: number;
+  time: number;
+  beatLength: number;
+}
+
+export function getTempoChanges(
+  cpbChanges: readonly CpbChange[],
+  events: readonly RD.Event[],
+): TempoChange[] {
+  const firstSong = events.find((event): event is RD.PlaySongEvent =>
+    event.type === "PlaySong"
+  );
+  const bpmChanges = new Map([[0, firstSong?.bpm ?? 100]]);
   for (const event of events) {
     if (event.if || event.tag) {
       continue;
     }
-    const [beatAtStartOfBar] = barToBeat(barCache, event.bar - 1);
-    const beat = beatAtStartOfBar + (event.beat - 1);
+    const beatAndCpb = barToBeat(cpbChanges, event.bar - 1);
+    const beat = beatAndCpb.beat + (event.beat - 1);
     switch (event.type) {
       case "PlaySong":
-        spbs.set(beat, 60 / event.bpm);
+        bpmChanges.set(beat, event.bpm ?? 100);
         break;
       case "SetBeatsPerMinute":
-        spbs.set(beat, 60 / event.beatsPerMinute);
+        bpmChanges.set(beat, event.beatsPerMinute ?? 100);
         break;
     }
   }
-  const result: TimeCache = [];
-  let cbeat = 0;
-  let ctime = 0;
-  let cspb = 0;
-  for (const [beat, spb] of spbs) {
-    if (spb === cspb) {
+  const result: TempoChange[] = [];
+  let beat = 0;
+  let time = 0;
+  let beatLength = 0;
+  for (const [newBeat, newBpm] of bpmChanges) {
+    const newBeatLength = 60 / newBpm;
+    if (newBeatLength === beatLength) {
       continue;
     }
-    ctime += (beat - cbeat) * cspb;
-    cbeat = beat;
-    cspb = spb;
-    result.push([cbeat, ctime, cspb]);
+    time += (newBeat - beat) * beatLength;
+    beat = newBeat;
+    beatLength = newBeatLength;
+    result.push({ beat, time, beatLength });
   }
   return result;
 }
 
 export function beatToTime(
-  beatCache: TimeCache,
+  tempoChanges: readonly TempoChange[],
   beat: number,
-): [time: number, spb: number] {
-  const [cbeat, ctime, cspb] =
-    beatCache[partitionPoint(beatCache, ([cbeat]) => cbeat <= beat) - 1];
-  return [ctime + (beat - cbeat) * cspb, cspb];
+): { time: number; beatLength: number } {
+  const lastTempoChange = tempoChanges[
+    partitionPoint(tempoChanges, (change) => change.beat <= beat) - 1
+  ];
+  return {
+    time: lastTempoChange.time +
+      (beat - lastTempoChange.beat) * lastTempoChange.beatLength,
+    beatLength: lastTempoChange.beatLength,
+  };
 }
 
-export function timeToBeat(beatCache: TimeCache, time: number): number {
-  const [cbeat, ctime, cspb] =
-    beatCache[partitionPoint(beatCache, ([, ctime]) => ctime <= time) - 1];
-  return cbeat + (time - ctime) / cspb;
+export function timeToBeat(
+  tempoChanges: readonly TempoChange[],
+  time: number,
+): number {
+  const lastTempoChange = tempoChanges[
+    partitionPoint(tempoChanges, (change) => change.time <= time) - 1
+  ];
+  return lastTempoChange.beat +
+    (time - lastTempoChange.time) / lastTempoChange.beatLength;
 }

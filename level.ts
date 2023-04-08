@@ -4,9 +4,10 @@ import { parseRDLevel } from "./rdlevel_parser.ts";
 import {
   barToBeat,
   beatToTime,
-  initBarCache,
-  initBeatCache,
-  type TimeCache,
+  type CpbChange,
+  getCpbChanges,
+  getTempoChanges,
+  type TempoChange,
 } from "./time.ts";
 
 export type CueType = typeof cueTypes[number];
@@ -74,8 +75,8 @@ export interface Hold {
 }
 
 export interface Level {
-  barCache: TimeCache;
-  beatCache: TimeCache;
+  cpbChanges: CpbChange[];
+  tempoChanges: TempoChange[];
   oneshotCues: OneshotCue[];
   oneshotBeats: OneshotBeat[];
   hits: number[];
@@ -100,17 +101,17 @@ export function parseLevel(level: string): Level {
   const activeEvents = events
     .filter((event) => event.active !== false)
     .sort((a, b) => a.bar - b.bar);
-  const barCache = initBarCache(activeEvents);
-  const beatCache = initBeatCache(barCache, activeEvents);
+  const cpbChanges = getCpbChanges(activeEvents);
+  const tempoChanges = getTempoChanges(cpbChanges, activeEvents);
   const oneshotCues: OneshotCue[] = [];
   const oneshotBeats: OneshotBeat[] = [];
   const hits: number[] = [];
   const holds: Hold[] = [];
   const freetimes: Freetime[] = [];
   const addClassicBeat = (beat: number, hold: number) => {
-    const [hit] = beatToTime(beatCache, beat);
+    const { time: hit } = beatToTime(tempoChanges, beat);
     if (hold) {
-      const [release] = beatToTime(beatCache, beat + hold);
+      const { time: release } = beatToTime(tempoChanges, beat + hold);
       holds.push({ hit, release });
     } else {
       hits.push(hit);
@@ -120,18 +121,19 @@ export function parseLevel(level: string): Level {
     if (event.if || event.tag) {
       continue;
     }
-    const [beatAtStartOfBar, cpb] = barToBeat(barCache, event.bar - 1);
-    const beat = beatAtStartOfBar + (event.beat - 1);
+    const beatAndCpb = barToBeat(cpbChanges, event.bar - 1);
+    const beat = beatAndCpb.beat + (event.beat - 1);
+    const cpb = beatAndCpb.cpb;
     switch (event.type) {
       case "SayReadyGetSetGo": {
         const tick = event.tick;
         const parts = cueTypeMap[event.phraseToSay ?? "SayReadyGetSetGo"] ?? [];
         const source = cueSourceMap[event.voiceSource ?? "Nurse"] ?? "nurse";
-        const [time, spb] = beatToTime(beatCache, beat);
+        const { time, beatLength } = beatToTime(tempoChanges, beat);
         for (const [pos, part] of parts.entries()) {
           if (part !== null) {
             oneshotCues.push({
-              time: time + (tick * pos) * spb,
+              time: time + (tick * pos) * beatLength,
               type: part,
               source,
             });
@@ -150,16 +152,18 @@ export function parseLevel(level: string): Level {
           delay = 0,
           skipshot = false,
         } = event;
-        const [time, spb] = beatToTime(beatCache, beat);
+        const { time, beatLength } = beatToTime(tempoChanges, beat);
         for (let pos = 0; pos <= loops; pos++) {
           oneshotBeats.push({
             time: time +
-              (interval * pos + (delay ? interval - delay : tick)) * spb,
+              (interval * pos + (delay ? interval - delay : tick)) * beatLength,
             skipshot: skipshot && pos === loops,
-            start: time + (interval * pos) * spb,
-            delay: delay * spb,
+            start: time + (interval * pos) * beatLength,
+            delay: delay * beatLength,
           });
-          hits.push(time + (interval * pos + (delay ? interval : tick)) * spb);
+          hits.push(
+            time + (interval * pos + (delay ? interval : tick)) * beatLength,
+          );
         }
         break;
       }
@@ -223,7 +227,7 @@ export function parseLevel(level: string): Level {
         break;
       }
       case "FinishLevel": {
-        const [time] = beatToTime(beatCache, beat);
+        const { time } = beatToTime(tempoChanges, beat);
         for (const source of cueSources) {
           oneshotCues.push({ time, type: "stop", source });
         }
@@ -244,5 +248,5 @@ export function parseLevel(level: string): Level {
   );
   hits.sort((a, b) => a - b);
   holds.sort((a, b) => a.hit - b.hit || a.release - b.release);
-  return { barCache, beatCache, oneshotCues, oneshotBeats, hits, holds };
+  return { cpbChanges, tempoChanges, oneshotCues, oneshotBeats, hits, holds };
 }

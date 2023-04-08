@@ -20,14 +20,17 @@ import {
   parseLevel,
 } from "./level.ts";
 import {
+  type BarAndBeat,
   barToBeat,
   beatToBar,
   beatToTime,
-  type TimeCache,
+  type CpbChange,
+  type TempoChange,
   timeToBeat,
 } from "./time.ts";
 
 export {
+  type BarAndBeat,
   barToBeat,
   beatToBar,
   beatToTime,
@@ -36,6 +39,7 @@ export {
   checkOneshotBeats,
   type CheckOneshotBeatsResult,
   type CheckOneshotCuesResult,
+  type CpbChange,
   type CueSource,
   type CueType,
   type ExpectedBeat,
@@ -46,7 +50,7 @@ export {
   playOneshotCues,
   type PlayOneshotCuesOptions,
   type PlayOneshotCuesResult,
-  type TimeCache,
+  type TempoChange,
   timeToBeat,
 };
 export type CheckLevelOptions = PlayOneshotCuesOptions;
@@ -78,6 +82,6 @@ export function checkLevel(
   };
 }
 
-export function formatTime([bar, beat]: [number, number]): string {
+export function formatTime({ bar, beat }: BarAndBeat): string {
   return `${bar + 1}-${Math.round((beat + 1) * 1000) / 1000}`;
 }

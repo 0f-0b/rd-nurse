@@ -65,7 +65,7 @@ const result = checkLevel(level, {
   interruptiblePattern,
   triangleshot,
 });
-const { barCache, beatCache } = level;
+const { cpbChanges, tempoChanges } = level;
 let count = 0;
 for (const [key, desc] of descs) {
   const pos = result[key];
@@ -75,7 +75,7 @@ for (const [key, desc] of descs) {
   count += pos.length;
   console.log(joinToString(
     pos,
-    (time) => formatTime(beatToBar(barCache, timeToBeat(beatCache, time))),
+    (time) => formatTime(beatToBar(cpbChanges, timeToBeat(tempoChanges, time))),
     { separator: ", ", prefix: desc + ": " },
   ));
 }
