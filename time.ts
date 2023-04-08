@@ -1,4 +1,4 @@
-import * as RD from "./deps/rd_schema/level.d.ts";
+import type * as RD from "./deps/rd_schema/level.d.ts";
 
 import { partitionPoint } from "./collections/partition_point.ts";
 
