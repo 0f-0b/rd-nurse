@@ -2,7 +2,7 @@ import { assertEquals } from "./deps/std/testing/asserts.ts";
 
 import { playOneshotCues, type PlayOneshotCuesResult } from "./cue.ts";
 
-Deno.test("correct cues", () => {
+Deno.test("correct cues", { permissions: "none" }, () => {
   assertEquals<PlayOneshotCuesResult>(
     playOneshotCues([
       { time: 1, type: "stop", source: "nurse" },
@@ -68,7 +68,7 @@ Deno.test("correct cues", () => {
   );
 });
 
-Deno.test("incorrect cues", () => {
+Deno.test("incorrect cues", { permissions: "none" }, () => {
   assertEquals<PlayOneshotCuesResult>(
     playOneshotCues([
       { time: 0, type: "go", source: "nurse" },
@@ -97,7 +97,7 @@ Deno.test("incorrect cues", () => {
   );
 });
 
-Deno.test("ignore source", () => {
+Deno.test("ignore source", { permissions: "none" }, () => {
   assertEquals<PlayOneshotCuesResult>(
     playOneshotCues([
       { time: 2, type: "get", source: "nurse" },
@@ -135,7 +135,7 @@ Deno.test("ignore source", () => {
   );
 });
 
-Deno.test("interruptible pattern", () => {
+Deno.test("interruptible pattern", { permissions: "none" }, () => {
   assertEquals<PlayOneshotCuesResult>(
     playOneshotCues([
       { time: 2, type: "get", source: "nurse" },
@@ -180,7 +180,7 @@ Deno.test("interruptible pattern", () => {
   );
 });
 
-Deno.test("triangleshot", () => {
+Deno.test("triangleshot", { permissions: "none" }, () => {
   assertEquals<PlayOneshotCuesResult>(
     playOneshotCues([
       { time: 2, type: "get", source: "nurse" },
@@ -221,7 +221,7 @@ Deno.test("triangleshot", () => {
   );
 });
 
-Deno.test("regression test 1", () => {
+Deno.test("regression test 1", { permissions: "none" }, () => {
   assertEquals<PlayOneshotCuesResult>(
     playOneshotCues([
       { time: 2, type: "get", source: "nurse" },
@@ -241,7 +241,7 @@ Deno.test("regression test 1", () => {
   );
 });
 
-Deno.test("regression test 2", () => {
+Deno.test("regression test 2", { permissions: "none" }, () => {
   assertEquals<PlayOneshotCuesResult>(
     playOneshotCues([
       { time: 2, type: "get", source: "nurse" },
