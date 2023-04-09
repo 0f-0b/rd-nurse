@@ -1,6 +1,6 @@
 import type * as RD from "./deps/rd_schema/level.d.ts";
 
-import { parseRDLevel } from "./rdlevel_parser.ts";
+import { parseRDJson } from "./rd_json_parser.ts";
 import {
   barToBeat,
   beatToTime,
@@ -91,7 +91,7 @@ interface Freetime {
 }
 
 export function parseLevel(level: string): Level {
-  const { rows, events } = parseRDLevel(level) as RD.Level;
+  const { rows, events } = parseRDJson(level) as RD.Level;
   const enabledRows = new Set<number>();
   for (const { row, muteBeats } of rows) {
     if (!muteBeats) {

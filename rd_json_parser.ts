@@ -48,7 +48,7 @@ function parseDouble(str: string): number {
   return Number.isNaN(value) ? 0 : value;
 }
 
-class RDLevelParser {
+class RDJsonParser {
   readonly #reader: StringReader;
 
   constructor(text: string) {
@@ -259,7 +259,7 @@ class RDLevelParser {
   }
 }
 
-export function parseRDLevel(text: string): unknown {
-  const parser = new RDLevelParser(text);
+export function parseRDJson(text: string): unknown {
+  const parser = new RDJsonParser(text);
   return parser.parseValue();
 }

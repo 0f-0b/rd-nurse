@@ -1,6 +1,6 @@
 import { assertEquals } from "./deps/std/testing/asserts.ts";
 
-import { parseRDLevel } from "./rdlevel_parser.ts";
+import { parseRDJson } from "./rd_json_parser.ts";
 
 // Mostly from https://github.com/auburnsummer/rd-indexer/blob/a246449889a37fe4805d79285ce16335e5e2f736/orchard/parse/test/test_parse.py
 const cases: [name: string, input: string, expected: unknown][] = [
@@ -127,6 +127,6 @@ it has literal newlines!"
 
 for (const [name, input, expected] of cases) {
   Deno.test(name, { permissions: "none" }, () => {
-    assertEquals(parseRDLevel(input), expected);
+    assertEquals(parseRDJson(input), expected);
   });
 }
