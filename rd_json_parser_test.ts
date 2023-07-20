@@ -1,4 +1,4 @@
-import { assertEquals } from "./deps/std/testing/asserts.ts";
+import { assertEquals } from "./deps/std/assert/assert_equals.ts";
 
 import { parseRDJson } from "./rd_json_parser.ts";
 

@@ -1,4 +1,4 @@
-import { assertEquals } from "./deps/std/testing/asserts.ts";
+import { assertEquals } from "./deps/std/assert/assert_equals.ts";
 
 import { playOneshotCues, type PlayOneshotCuesResult } from "./cue.ts";
 

@@ -63,7 +63,6 @@ class RDJsonParser {
       }
       this.#reader.read();
     }
-    return;
   }
 
   #getWord(): string {
@@ -150,7 +149,8 @@ class RDJsonParser {
   }
 
   parseObject(): Record<string, unknown> | null {
-    const value: Record<string, unknown> = Object.create(null);
+    // deno-lint-ignore ban-types
+    const value: Record<string, unknown> = { __proto__: null } as {};
     this.#reader.read();
     parse:
     for (;;) {

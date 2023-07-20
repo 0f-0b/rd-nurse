@@ -14,7 +14,7 @@ import {
   timeToBeat,
 } from "./mod.ts";
 
-const decoder = new TextDecoder("utf-8", { fatal: true });
+const decoder = new TextDecoder(undefined, { fatal: true });
 const descs: [keyof CheckLevelResult, string][] = [
   ["invalidCues", "Invalid cue"],
   ["unexpectedSkipshots", "Unexpected skipshot"],
@@ -73,11 +73,14 @@ for (const [key, desc] of descs) {
     continue;
   }
   count += pos.length;
-  console.log(joinToString(
-    pos,
-    (time) => formatTime(beatToBar(cpbChanges, timeToBeat(tempoChanges, time))),
-    { separator: ", ", prefix: desc + ": " },
-  ));
+  console.log(`${desc}: ${
+    joinToString(
+      pos,
+      (time) =>
+        formatTime(beatToBar(cpbChanges, timeToBeat(tempoChanges, time))),
+      { separator: ", " },
+    )
+  }`);
 }
 if (count !== 0) {
   Deno.exit(1);
