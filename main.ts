@@ -3,7 +3,6 @@
 import { Command } from "./deps/cliffy/command.ts";
 import { joinToString } from "./deps/std/collections/join_to_string.ts";
 import { yellow } from "./deps/std/fmt/colors.ts";
-import { readAllSync } from "./deps/std/streams/read_all.ts";
 
 import {
   beatToBar,
@@ -54,7 +53,9 @@ const {
 if (Deno.isatty(Deno.stdin.rid)) {
   console.warn(`${yellow("Warning")} Reading from stdin which is a TTY`);
 }
-const input = readAllSync(Deno.stdin);
+const input = new Uint8Array(
+  await new Response(Deno.stdin.readable).arrayBuffer(),
+);
 if (input.length === 0) {
   cmd.showHelp();
   Deno.exit(2);

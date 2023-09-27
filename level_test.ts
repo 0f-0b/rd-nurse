@@ -1,4 +1,5 @@
-import { fromFileUrl, join } from "./deps/std/path.ts";
+import { fromFileUrl } from "./deps/std/path/from_file_url.ts";
+import { join } from "./deps/std/path/join.ts";
 import { assertSnapshot } from "./deps/std/testing/snapshot.ts";
 
 import { type Level, parseLevel } from "./level.ts";
