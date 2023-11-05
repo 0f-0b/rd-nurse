@@ -62,11 +62,14 @@ export interface OneshotCue {
   source: CueSource;
 }
 
+export type OneshotBeatOffset =
+  | { mode: "freezeshot"; delay: number; interval: number }
+  | { mode: "burnshot"; interval: number };
+
 export interface OneshotBeat {
   time: number;
   skipshot: boolean;
-  start: number;
-  delay: number;
+  offset: OneshotBeatOffset | null;
 }
 
 export interface Hold {
@@ -122,7 +125,7 @@ export function parseLevel(level: string): Level {
       continue;
     }
     const beatAndCpb = barToBeat(cpbChanges, event.bar - 1);
-    const beat = beatAndCpb.beat + (event.beat - 1);
+    let beat = beatAndCpb.beat + (event.beat - 1);
     const cpb = beatAndCpb.cpb;
     switch (event.type) {
       case "SayReadyGetSetGo": {
@@ -133,7 +136,7 @@ export function parseLevel(level: string): Level {
         for (const [pos, part] of parts.entries()) {
           if (part !== null) {
             oneshotCues.push({
-              time: time + (tick * pos) * beatLength,
+              time: time + tick * pos * beatLength,
               type: part,
               source,
             });
@@ -145,25 +148,50 @@ export function parseLevel(level: string): Level {
         if (!enabledRows.has(event.row)) {
           break;
         }
-        const {
+        let {
           tick,
           loops = 0,
           interval = 0,
           delay = 0,
+          subdivisions = 1,
+          freezeBurnMode,
           skipshot = false,
         } = event;
+        if (freezeBurnMode === undefined && delay > 0) {
+          freezeBurnMode = "Freezeshot";
+          interval -= delay;
+          beat += interval - tick;
+        }
         const { time, beatLength } = beatToTime(tempoChanges, beat);
+        const offset: OneshotBeatOffset | null = (() => {
+          switch (freezeBurnMode) {
+            case "Freezeshot":
+              return {
+                mode: "freezeshot",
+                delay: delay * beatLength,
+                interval: interval * beatLength,
+              };
+            case "Burnshot":
+              return {
+                mode: "burnshot",
+                interval: interval * beatLength,
+              };
+            default:
+              return null;
+          }
+        })();
+        const subinterval = tick / subdivisions;
         for (let pos = 0; pos <= loops; pos++) {
-          oneshotBeats.push({
-            time: time +
-              (interval * pos + (delay ? interval - delay : tick)) * beatLength,
-            skipshot: skipshot && pos === loops,
-            start: time + (interval * pos) * beatLength,
-            delay: delay * beatLength,
-          });
-          hits.push(
-            time + (interval * pos + (delay ? interval : tick)) * beatLength,
-          );
+          for (let subdiv = 0; subdiv < subdivisions; subdiv++) {
+            const baseOffset = interval * pos + subinterval * subdiv + tick;
+            const isLastHit = pos === loops && subdiv === subdivisions - 1;
+            oneshotBeats.push({
+              time: time + baseOffset * beatLength,
+              skipshot: skipshot && isLastHit,
+              offset,
+            });
+            hits.push(time + (baseOffset + delay) * beatLength);
+          }
         }
         break;
       }
@@ -241,10 +269,7 @@ export function parseLevel(level: string): Level {
     cueSources.indexOf(a.source) - cueSources.indexOf(b.source)
   );
   oneshotBeats.sort((a, b) =>
-    a.time - b.time ||
-    Number(a.skipshot) - Number(b.skipshot) ||
-    a.start - b.start ||
-    a.delay - b.delay
+    a.time - b.time || Number(a.skipshot) - Number(b.skipshot)
   );
   hits.sort((a, b) => a - b);
   holds.sort((a, b) => a.hit - b.hit || a.release - b.release);

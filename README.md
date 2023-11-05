@@ -35,8 +35,8 @@ incorrectly cued oneshots and bad holds found in the level.
 
 - **`-t`**, **`--triangleshot`**
 
-  Treat "two" as a triangleshot cue. By default it is assumed to be a squareshot
-  cue.
+  Treat 2, 3, etc. as triangleshot cues. By default they are assumed to be
+  squareshot cues.
 
 - **`-h`**, **`--help`**
 

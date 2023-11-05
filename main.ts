@@ -7,14 +7,13 @@ import { yellow } from "./deps/std/fmt/colors.ts";
 import {
   beatToBar,
   checkLevel,
-  type CheckLevelResult,
   formatTime,
   parseLevel,
   timeToBeat,
 } from "./mod.ts";
 
 const decoder = new TextDecoder(undefined, { fatal: true });
-const descs: [keyof CheckLevelResult, string][] = [
+const descs = [
   ["invalidCues", "Invalid cue"],
   ["unexpectedSkipshots", "Unexpected skipshot"],
   ["overlappingSkipshots", "Overlapping skipshots"],
@@ -25,7 +24,7 @@ const descs: [keyof CheckLevelResult, string][] = [
   ["missingHits", "Missing hit"],
   ["hitOnHoldRelease", "Hit on hold release"],
   ["overlappingHolds", "Overlapping holds"],
-];
+] as const;
 const {
   options: { ignoreSource, interruptiblePattern, triangleshot },
   cmd,
@@ -66,6 +65,11 @@ const result = checkLevel(level, {
   interruptiblePattern,
   triangleshot,
 });
+if (result.hasUnsupportedBurnshot) {
+  console.warn(
+    `${yellow("Warning")} Level contains burnshots; results will be incorrect`,
+  );
+}
 const { cpbChanges, tempoChanges } = level;
 let count = 0;
 for (const [key, desc] of descs) {

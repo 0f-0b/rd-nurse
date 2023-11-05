@@ -74,15 +74,19 @@ function* playNormal(
   }
 }
 
-function* playSquare(
+function* playSubdiv(
   { offsets: [interval] }: Pattern,
   startTime: number,
   count: number,
   triangleshot: boolean,
 ): Generator<ExpectedBeat, undefined> {
-  if (count === 2 && triangleshot) {
-    for (const i of [1.5, 2]) {
-      yield { time: startTime + interval * i, prev: -1, next: -1 };
+  if (count > 1 && triangleshot) {
+    for (let subdiv = 0; subdiv < count; subdiv++) {
+      yield {
+        time: startTime + interval * (1.5 + subdiv / count),
+        prev: -1,
+        next: -1,
+      };
     }
   } else {
     for (let i = 1; i <= count; i++) {
@@ -182,7 +186,7 @@ export function playOneshotCues(
   };
   const tonk = ({ pattern, cueTime }: Source, time: number, count: number) => {
     if (pattern.squareshot) {
-      for (const beat of playSquare(pattern, time, count, triangleshot)) {
+      for (const beat of playSubdiv(pattern, time, count, triangleshot)) {
         expected.push(beat);
       }
     } else {

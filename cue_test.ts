@@ -187,12 +187,19 @@ Deno.test("triangleshot", { permissions: "none" }, () => {
       { time: 3, type: "set", source: "nurse" },
       { time: 4, type: 1, source: "nurse" },
       { time: 5.5, type: 2, source: "nurse" },
+      { time: 8, type: 1, source: "nurse" },
+      { time: 9.5, type: 4, source: "nurse" },
     ]),
     {
       expected: [
         { time: 5, prev: -1, next: -1 },
         { time: 6.5, prev: -1, next: -1 },
         { time: 7.5, prev: -1, next: -1 },
+        { time: 9, prev: -1, next: -1 },
+        { time: 10.5, prev: -1, next: -1 },
+        { time: 11.5, prev: -1, next: -1 },
+        { time: 12.5, prev: -1, next: -1 },
+        { time: 13.5, prev: -1, next: -1 },
       ],
       result: {
         invalidCues: [],
@@ -205,6 +212,8 @@ Deno.test("triangleshot", { permissions: "none" }, () => {
       { time: 3, type: "set", source: "nurse" },
       { time: 4, type: 1, source: "nurse" },
       { time: 5.5, type: 2, source: "nurse" },
+      { time: 8, type: 1, source: "nurse" },
+      { time: 9.5, type: 4, source: "nurse" },
     ], {
       triangleshot: true,
     }),
@@ -213,6 +222,11 @@ Deno.test("triangleshot", { permissions: "none" }, () => {
         { time: 5, prev: -1, next: -1 },
         { time: 7, prev: -1, next: -1 },
         { time: 7.5, prev: -1, next: -1 },
+        { time: 9, prev: -1, next: -1 },
+        { time: 11, prev: -1, next: -1 },
+        { time: 11.25, prev: -1, next: -1 },
+        { time: 11.5, prev: -1, next: -1 },
+        { time: 11.75, prev: -1, next: -1 },
       ],
       result: {
         invalidCues: [],

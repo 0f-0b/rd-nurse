@@ -407,1034 +407,862 @@ snapshot[`parseLevel 1`] = `
     {
       "time": 26.871166,
       "skipshot": false,
-      "start": 26.503067,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 27.607362,
       "skipshot": false,
-      "start": 27.239264,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 28.343558,
       "skipshot": false,
-      "start": 27.97546,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 29.079755,
       "skipshot": false,
-      "start": 28.711656,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 29.815951,
       "skipshot": false,
-      "start": 29.447853,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 30.552147,
       "skipshot": false,
-      "start": 30.184049,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 31.288344,
       "skipshot": false,
-      "start": 30.920245,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 32.02454,
       "skipshot": false,
-      "start": 31.656442,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 32.760736,
       "skipshot": false,
-      "start": 32.392638,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 33.496933,
       "skipshot": false,
-      "start": 33.128834,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 34.233129,
       "skipshot": false,
-      "start": 33.865031,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 34.969325,
       "skipshot": false,
-      "start": 34.601227,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 35.705521,
       "skipshot": false,
-      "start": 35.337423,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 36.441718,
       "skipshot": false,
-      "start": 36.07362,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 37.177914,
       "skipshot": false,
-      "start": 36.809816,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 37.91411,
       "skipshot": false,
-      "start": 37.361963,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 37.91411,
       "skipshot": false,
-      "start": 37.730061,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 38.650307,
       "skipshot": false,
-      "start": 38.282209,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 39.386503,
       "skipshot": false,
-      "start": 39.018405,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 40.122699,
       "skipshot": false,
-      "start": 39.754601,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 40.858896,
       "skipshot": false,
-      "start": 40.490798,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 41.595092,
       "skipshot": false,
-      "start": 41.226994,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 42.331288,
       "skipshot": false,
-      "start": 41.96319,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 43.067485,
       "skipshot": false,
-      "start": 42.699387,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 43.803681,
       "skipshot": false,
-      "start": 43.435583,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 44.539877,
       "skipshot": false,
-      "start": 44.171779,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 45.276074,
       "skipshot": false,
-      "start": 44.907975,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 46.01227,
       "skipshot": false,
-      "start": 45.644172,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 46.748466,
       "skipshot": false,
-      "start": 46.380368,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 47.484663,
       "skipshot": false,
-      "start": 47.116564,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 48.220859,
       "skipshot": false,
-      "start": 47.852761,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 48.957055,
       "skipshot": false,
-      "start": 48.588957,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 49.693252,
       "skipshot": false,
-      "start": 49.325153,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 50.797546,
       "skipshot": false,
-      "start": 50.06135,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 51.90184,
       "skipshot": false,
-      "start": 51.165644,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 53.006135,
       "skipshot": false,
-      "start": 52.269939,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 54.110429,
       "skipshot": false,
-      "start": 53.374233,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 55.214724,
       "skipshot": false,
-      "start": 54.478528,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 56.319018,
       "skipshot": false,
-      "start": 55.582822,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 57.423313,
       "skipshot": false,
-      "start": 56.687117,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 58.527607,
       "skipshot": false,
-      "start": 57.791411,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 58.527607,
       "skipshot": false,
-      "start": 58.343558,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 59.631902,
       "skipshot": false,
-      "start": 58.895706,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 60.736196,
       "skipshot": false,
-      "start": 60,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 61.840491,
       "skipshot": false,
-      "start": 61.104294,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 62.944785,
       "skipshot": false,
-      "start": 62.208589,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 64.04908,
       "skipshot": false,
-      "start": 63.312883,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 64.04908,
       "skipshot": false,
-      "start": 63.680982,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 65.153374,
       "skipshot": false,
-      "start": 64.417178,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 66.257669,
       "skipshot": false,
-      "start": 65.521472,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 66.257669,
       "skipshot": false,
-      "start": 66.07362,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 103.435583,
       "skipshot": false,
-      "start": 103.067485,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 104.171779,
       "skipshot": false,
-      "start": 103.803681,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 104.907975,
       "skipshot": false,
-      "start": 104.539877,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 105.644172,
       "skipshot": false,
-      "start": 105.276074,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 105.828221,
       "skipshot": false,
-      "start": 105.460123,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 106.380368,
       "skipshot": false,
-      "start": 106.01227,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 107.116564,
       "skipshot": false,
-      "start": 106.748466,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 107.852761,
       "skipshot": false,
-      "start": 107.484663,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 108.03681,
       "skipshot": false,
-      "start": 107.668712,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 108.588957,
       "skipshot": false,
-      "start": 108.220859,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 109.325153,
       "skipshot": false,
-      "start": 108.957055,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 110.06135,
       "skipshot": false,
-      "start": 109.693252,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 110.797546,
       "skipshot": false,
-      "start": 110.429448,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 111.533742,
       "skipshot": false,
-      "start": 111.165644,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 111.717791,
       "skipshot": false,
-      "start": 111.349693,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 112.269939,
       "skipshot": false,
-      "start": 111.90184,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 113.006135,
       "skipshot": false,
-      "start": 112.638037,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 113.742331,
       "skipshot": false,
-      "start": 113.374233,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 113.92638,
       "skipshot": false,
-      "start": 113.558282,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 114.478528,
       "skipshot": false,
-      "start": 114.110429,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 114.662577,
       "skipshot": false,
-      "start": 114.294479,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 115.214724,
       "skipshot": false,
-      "start": 114.846626,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 115.95092,
       "skipshot": false,
-      "start": 115.582822,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 116.687117,
       "skipshot": false,
-      "start": 116.319018,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 117.423313,
       "skipshot": false,
-      "start": 117.055215,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 117.607362,
       "skipshot": false,
-      "start": 117.239264,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 118.159509,
       "skipshot": false,
-      "start": 117.791411,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 118.895706,
       "skipshot": false,
-      "start": 118.527607,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 119.631902,
       "skipshot": false,
-      "start": 119.263804,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 119.815951,
       "skipshot": false,
-      "start": 119.447853,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 120.368098,
       "skipshot": false,
-      "start": 120,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 120.552147,
       "skipshot": false,
-      "start": 120.184049,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 121.104294,
       "skipshot": false,
-      "start": 120.736196,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 121.840491,
       "skipshot": false,
-      "start": 121.472393,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 122.02454,
       "skipshot": false,
-      "start": 121.656442,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 122.576687,
       "skipshot": false,
-      "start": 122.208589,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 123.312883,
       "skipshot": false,
-      "start": 122.944785,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 123.496933,
       "skipshot": false,
-      "start": 123.128834,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 124.04908,
       "skipshot": false,
-      "start": 123.680982,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 124.233129,
       "skipshot": false,
-      "start": 123.865031,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 124.785276,
       "skipshot": false,
-      "start": 124.417178,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 124.969325,
       "skipshot": false,
-      "start": 124.601227,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 125.521472,
       "skipshot": false,
-      "start": 125.153374,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 125.705521,
       "skipshot": false,
-      "start": 125.337423,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 126.257669,
       "skipshot": false,
-      "start": 125.889571,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 126.441718,
       "skipshot": false,
-      "start": 126.07362,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 139.141104,
       "skipshot": false,
-      "start": 138.404908,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 139.141104,
       "skipshot": false,
-      "start": 138.957055,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 140.613497,
       "skipshot": false,
-      "start": 139.877301,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 140.613497,
       "skipshot": false,
-      "start": 140.429448,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 142.08589,
       "skipshot": false,
-      "start": 141.349693,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 142.08589,
       "skipshot": false,
-      "start": 141.90184,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 143.558282,
       "skipshot": false,
-      "start": 142.822086,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 143.558282,
       "skipshot": false,
-      "start": 143.374233,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 143.558282,
       "skipshot": false,
-      "start": 143.006135,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 145.030675,
       "skipshot": false,
-      "start": 144.294479,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 145.030675,
       "skipshot": false,
-      "start": 144.846626,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 146.503067,
       "skipshot": false,
-      "start": 145.766871,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 146.503067,
       "skipshot": false,
-      "start": 146.319018,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 146.503067,
       "skipshot": false,
-      "start": 145.674847,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 146.503067,
       "skipshot": false,
-      "start": 145.95092,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 147.97546,
       "skipshot": false,
-      "start": 147.239264,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 147.97546,
       "skipshot": false,
-      "start": 147.791411,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 149.447853,
       "skipshot": false,
-      "start": 148.711656,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 149.447853,
       "skipshot": false,
-      "start": 149.263804,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 149.447853,
       "skipshot": false,
-      "start": 149.079755,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 156.441718,
       "skipshot": false,
-      "start": 156.07362,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 157.177914,
       "skipshot": false,
-      "start": 156.809816,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 157.91411,
       "skipshot": false,
-      "start": 157.546012,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 158.650307,
       "skipshot": false,
-      "start": 158.282209,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 159.386503,
       "skipshot": false,
-      "start": 159.018405,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 160.122699,
       "skipshot": false,
-      "start": 159.754601,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 160.858896,
       "skipshot": false,
-      "start": 160.490798,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 161.595092,
       "skipshot": false,
-      "start": 161.226994,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 162.331288,
       "skipshot": false,
-      "start": 161.96319,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 163.067485,
       "skipshot": false,
-      "start": 162.699387,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 163.803681,
       "skipshot": false,
-      "start": 163.435583,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 164.539877,
       "skipshot": false,
-      "start": 164.171779,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 165.276074,
       "skipshot": false,
-      "start": 164.907975,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 166.01227,
       "skipshot": false,
-      "start": 165.644172,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 166.748466,
       "skipshot": false,
-      "start": 166.380368,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 167.484663,
       "skipshot": false,
-      "start": 167.116564,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 168.220859,
       "skipshot": false,
-      "start": 167.852761,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 168.957055,
       "skipshot": false,
-      "start": 168.588957,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 169.693252,
       "skipshot": false,
-      "start": 169.325153,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 170.429448,
       "skipshot": false,
-      "start": 170.06135,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 171.165644,
       "skipshot": false,
-      "start": 170.797546,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 171.90184,
       "skipshot": false,
-      "start": 171.533742,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 172.638037,
       "skipshot": false,
-      "start": 172.269939,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 173.374233,
       "skipshot": false,
-      "start": 173.006135,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 174.110429,
       "skipshot": false,
-      "start": 173.742331,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 174.846626,
       "skipshot": false,
-      "start": 174.478528,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 175.582822,
       "skipshot": false,
-      "start": 175.214724,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 176.319018,
       "skipshot": false,
-      "start": 175.95092,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 177.055215,
       "skipshot": false,
-      "start": 176.687117,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 177.791411,
       "skipshot": false,
-      "start": 177.423313,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 178.527607,
       "skipshot": false,
-      "start": 178.159509,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 179.263804,
       "skipshot": false,
-      "start": 178.895706,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 180.368098,
       "skipshot": false,
-      "start": 179.631902,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 181.840491,
       "skipshot": false,
-      "start": 181.104294,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 183.312883,
       "skipshot": false,
-      "start": 182.576687,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 184.785276,
       "skipshot": false,
-      "start": 184.04908,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 186.257669,
       "skipshot": false,
-      "start": 185.521472,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 187.730061,
       "skipshot": false,
-      "start": 186.993865,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 189.202454,
       "skipshot": false,
-      "start": 188.466258,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 190.674847,
       "skipshot": false,
-      "start": 189.93865,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 192.147239,
       "skipshot": false,
-      "start": 191.411043,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 193.619632,
       "skipshot": false,
-      "start": 192.883436,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 195.092025,
       "skipshot": false,
-      "start": 194.355828,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 196.564417,
       "skipshot": false,
-      "start": 195.828221,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 198.03681,
       "skipshot": false,
-      "start": 197.300613,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 199.509202,
       "skipshot": false,
-      "start": 198.773006,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 200.981595,
       "skipshot": false,
-      "start": 200.245399,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 202.453988,
       "skipshot": false,
-      "start": 201.717791,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 203.92638,
       "skipshot": false,
-      "start": 203.190184,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 205.398773,
       "skipshot": false,
-      "start": 204.662577,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 206.871166,
       "skipshot": false,
-      "start": 206.134969,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 208.343558,
       "skipshot": false,
-      "start": 207.607362,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 209.815951,
       "skipshot": false,
-      "start": 209.079755,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 211.584098,
       "skipshot": false,
-      "start": 210.661021,
-      "delay": 0
+      "offset": null
     },
     {
       "time": 213.693419,
       "skipshot": false,
-      "start": 212.592502,
-      "delay": 0
+      "offset": null
     }
   ],
   "hits": [
