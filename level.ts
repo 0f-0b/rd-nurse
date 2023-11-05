@@ -10,8 +10,15 @@ import {
   type TempoChange,
 } from "./time.ts";
 
-export type CueType = typeof cueTypes[number];
-const cueTypes = [1, 2, 3, 4, 5, "go", "stop", "get", "set"] as const;
+const cueTypes = ["go", "stop", "get", "set"] as const;
+export type CueType = typeof cueTypes[number] | number;
+
+function compareCueTypesForSorting(a: CueType, b: CueType): number {
+  return typeof a === "number"
+    ? (typeof b === "number" ? a - b : -1)
+    : (typeof b === "number" ? 1 : cueTypes.indexOf(a) - cueTypes.indexOf(b));
+}
+
 const cueTypeMap = Object.freeze<
   Partial<
     Record<
@@ -40,8 +47,14 @@ const cueTypeMap = Object.freeze<
   "Count5": [5],
   "SayReadyGetSetGo": [null, null, "get", "set", "go"],
 });
-export type CueSource = typeof cueSources[number];
+
 const cueSources = ["nurse", "ian"] as const;
+export type CueSource = typeof cueSources[number];
+
+function compareCueSourcesForSorting(a: CueSource, b: CueSource): number {
+  return cueSources.indexOf(a) - cueSources.indexOf(b);
+}
+
 const cueSourceMap = Object.freeze<
   Partial<
     Record<NonNullable<RD.SayReadyGetSetGoEvent["voiceSource"]>, CueSource>
@@ -55,6 +68,18 @@ const cueSourceMap = Object.freeze<
   "IanCalm": "ian",
   "IanSlow": "ian",
 });
+const countingSourceMap = Object.freeze<
+  Partial<
+    Record<NonNullable<RD.SetCountingSoundEvent["voiceSource"]>, CueSource>
+  >
+>({
+  // @ts-expect-error Remove prototype
+  __proto__: null,
+  "JyiCountEnglish": "nurse",
+  "IanCountEnglish": "ian",
+  "IanCountEnglishCalm": "ian",
+  "IanCountEnglishSlow": "ian",
+});
 
 export interface OneshotCue {
   time: number;
@@ -64,7 +89,7 @@ export interface OneshotCue {
 
 export type OneshotBeatOffset =
   | { mode: "freezeshot"; delay: number; interval: number }
-  | { mode: "burnshot"; interval: number };
+  | { mode: "burnshot"; delay: number; interval: number };
 
 export interface OneshotBeat {
   time: number;
@@ -86,6 +111,11 @@ export interface Level {
   holds: Hold[];
 }
 
+interface CountingSound {
+  source: CueSource;
+  subdivOffset: number;
+}
+
 interface Freetime {
   offset: number;
   cpb: number;
@@ -101,6 +131,7 @@ export function parseLevel(level: string): Level {
       enabledRows.add(row);
     }
   }
+  const rowCountingSound = new Map<number, CountingSound>();
   const activeEvents = events
     .filter((event) => event.active !== false)
     .sort((a, b) => a.bar - b.bar);
@@ -129,9 +160,13 @@ export function parseLevel(level: string): Level {
     const cpb = beatAndCpb.cpb;
     switch (event.type) {
       case "SayReadyGetSetGo": {
-        const tick = event.tick;
-        const parts = cueTypeMap[event.phraseToSay ?? "SayReadyGetSetGo"] ?? [];
-        const source = cueSourceMap[event.voiceSource ?? "Nurse"] ?? "nurse";
+        const {
+          phraseToSay = "SayReadyGetSetGo",
+          voiceSource = "Nurse",
+          tick,
+        } = event;
+        const parts = cueTypeMap[phraseToSay] ?? [];
+        const source = cueSourceMap[voiceSource] ?? "nurse";
         const { time, beatLength } = beatToTime(tempoChanges, beat);
         for (const [pos, part] of parts.entries()) {
           if (part !== null) {
@@ -144,6 +179,16 @@ export function parseLevel(level: string): Level {
         }
         break;
       }
+      case "SetCountingSound": {
+        const { voiceSource = "JyiCount", enabled, subdivOffset = 0.5 } = event;
+        const source = enabled ? countingSourceMap[voiceSource] : undefined;
+        if (source === undefined) {
+          rowCountingSound.delete(event.row);
+        } else {
+          rowCountingSound.set(event.row, { source, subdivOffset });
+        }
+        break;
+      }
       case "AddOneshotBeat": {
         if (!enabledRows.has(event.row)) {
           break;
@@ -153,16 +198,46 @@ export function parseLevel(level: string): Level {
           loops = 0,
           interval = 0,
           delay = 0,
+          pulseType = "Wave",
           subdivisions = 1,
           freezeBurnMode,
           skipshot = false,
         } = event;
-        if (freezeBurnMode === undefined && delay > 0) {
-          freezeBurnMode = "Freezeshot";
-          interval -= delay;
-          beat += interval - tick;
+        if (freezeBurnMode === undefined) {
+          if (delay > 0) {
+            freezeBurnMode = "Freezeshot";
+            interval -= delay;
+            beat += interval - tick;
+          } else {
+            freezeBurnMode = "None";
+          }
+        }
+        if (freezeBurnMode === "Burnshot") {
+          const halfInterval = interval / 2;
+          delay = halfInterval - tick;
+          tick = halfInterval;
         }
         const { time, beatLength } = beatToTime(tempoChanges, beat);
+        if (pulseType === "Square" || pulseType === "Triangle") {
+          const countingSound = rowCountingSound.get(event.row);
+          if (countingSound) {
+            const { source, subdivOffset } = countingSound;
+            let cueOffset = pulseType === "Square" ? 0 : subdivOffset * tick;
+            switch (freezeBurnMode) {
+              case "Freezeshot":
+                cueOffset -= interval - tick;
+                break;
+              case "Burnshot":
+                cueOffset -= interval;
+                break;
+            }
+            oneshotCues.push({
+              time: time - cueOffset * beatLength,
+              type: subdivisions,
+              source,
+            });
+          }
+        }
         const offset: OneshotBeatOffset | null = (() => {
           switch (freezeBurnMode) {
             case "Freezeshot":
@@ -174,9 +249,10 @@ export function parseLevel(level: string): Level {
             case "Burnshot":
               return {
                 mode: "burnshot",
+                delay: delay * beatLength,
                 interval: interval * beatLength,
               };
-            default:
+            case "None":
               return null;
           }
         })();
@@ -265,8 +341,8 @@ export function parseLevel(level: string): Level {
   }
   oneshotCues.sort((a, b) =>
     a.time - b.time ||
-    cueTypes.indexOf(a.type) - cueTypes.indexOf(b.type) ||
-    cueSources.indexOf(a.source) - cueSources.indexOf(b.source)
+    compareCueTypesForSorting(a.type, b.type) ||
+    compareCueSourcesForSorting(a.source, b.source)
   );
   oneshotBeats.sort((a, b) =>
     a.time - b.time || Number(a.skipshot) - Number(b.skipshot)

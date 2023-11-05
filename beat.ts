@@ -7,10 +7,12 @@ export interface CheckOneshotBeatsResult {
   overlappingSkipshots: number[];
   unexpectedFreezeshots: number[];
   overlappingFreezeshots: number[];
+  unexpectedBurnshots: number[];
+  overlappingBurnshots: number[];
   uncuedHits: number[];
   skippedHits: number[];
   missingHits: number[];
-  hasUnsupportedBurnshot: boolean;
+  hasBurnshot: boolean;
 }
 
 type BeatResult =
@@ -24,7 +26,7 @@ type BeatResult =
     type:
       | "uncued"
       | "unexpected_freezeshot"
-      | "unsupported_burnshot"
+      | "unexpected_burnshot"
       | "unexpected_skipshot"
       | "overlapping_skipshot";
     time: number;
@@ -34,24 +36,23 @@ function addBeat(
   { time, skipshot, offset }: OneshotBeat,
   expected: ExpectedBeat[],
 ): BeatResult {
-  if (offset?.mode === "burnshot") {
-    return { type: "unsupported_burnshot", time };
-  }
   const matches = expected
     .filter(({ time: expectedTime }) => almostEqual(time, expectedTime));
   if (matches.length === 0) {
     return { type: "uncued", time };
   }
-  switch (offset?.mode) {
-    case "freezeshot": {
-      const cueTime = time - offset.interval;
-      const prev = matches
-        .map((match) => match.prev)
-        .filter((x) => x !== -1);
-      if (!prev.some((x) => almostEqual(x, cueTime))) {
-        return { type: "unexpected_freezeshot", time };
+  if (offset) {
+    const cueTime = time - offset.interval;
+    const prev = matches
+      .map((match) => match.prev)
+      .filter((x) => x !== -1);
+    if (!prev.some((x) => almostEqual(x, cueTime))) {
+      switch (offset.mode) {
+        case "freezeshot":
+          return { type: "unexpected_freezeshot", time };
+        case "burnshot":
+          return { type: "unexpected_burnshot", time };
       }
-      break;
     }
   }
   if (skipshot) {
@@ -82,12 +83,17 @@ export function checkOneshotBeats(
     overlappingSkipshots: [],
     unexpectedFreezeshots: [],
     overlappingFreezeshots: [],
+    unexpectedBurnshots: [],
+    overlappingBurnshots: [],
     uncuedHits: [],
     skippedHits: [],
     missingHits: [],
-    hasUnsupportedBurnshot: false,
+    hasBurnshot: false,
   };
   for (const beat of beats) {
+    if (beat.offset?.mode === "burnshot") {
+      result.hasBurnshot = true;
+    }
     const beatResult = addBeat(beat, expected);
     switch (beatResult.type) {
       case "cued": {
@@ -103,9 +109,6 @@ export function checkOneshotBeats(
       case "unexpected_freezeshot":
         result.unexpectedFreezeshots.push(beatResult.time);
         break;
-      case "unsupported_burnshot":
-        result.hasUnsupportedBurnshot = true;
-        break;
       case "unexpected_skipshot":
         result.unexpectedSkipshots.push(beatResult.time);
         break;
@@ -116,24 +119,35 @@ export function checkOneshotBeats(
   }
   for (const { time, offset } of hit) {
     if (
-      offset?.mode === "freezeshot" &&
-      hit.some((x) =>
+      offset && hit.some((x) =>
         almostEqual(x.time, time) &&
-        !(x.offset?.mode === "freezeshot" &&
-          almostEqual(x.offset.delay, offset.delay))
+        !(x.offset?.mode === offset.mode && x.offset.delay === offset.delay)
       )
     ) {
-      result.overlappingFreezeshots.push(time);
+      switch (offset.mode) {
+        case "freezeshot":
+          result.overlappingFreezeshots.push(time);
+          break;
+        case "burnshot":
+          result.overlappingBurnshots.push(time);
+          break;
+      }
     }
   }
+  const hitTime = hit.map((x) => {
+    let time = x.time;
+    switch (x.offset?.mode) {
+      case "freezeshot":
+        time += x.offset.delay;
+        break;
+      case "burnshot":
+        time -= x.offset.delay;
+        break;
+    }
+    return time;
+  });
   for (const time of uncued) {
-    if (
-      !hit.some((x) => {
-        const hitTime = x.time +
-          (x.offset?.mode === "freezeshot" ? x.offset.delay : 0);
-        return almostEqual(hitTime, time);
-      })
-    ) {
+    if (!hitTime.some((x) => almostEqual(x, time))) {
       result.uncuedHits.push(time);
     }
   }
@@ -150,6 +164,8 @@ export function checkOneshotBeats(
   cleanUp(result.overlappingSkipshots);
   cleanUp(result.unexpectedFreezeshots);
   cleanUp(result.overlappingFreezeshots);
+  cleanUp(result.unexpectedBurnshots);
+  cleanUp(result.overlappingBurnshots);
   cleanUp(result.uncuedHits);
   cleanUp(result.skippedHits);
   cleanUp(result.missingHits);

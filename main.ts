@@ -19,6 +19,8 @@ const descs = [
   ["overlappingSkipshots", "Overlapping skipshots"],
   ["unexpectedFreezeshots", "Unexpected freezeshot"],
   ["overlappingFreezeshots", "Overlapping freezeshots"],
+  ["unexpectedBurnshots", "Unexpected burnshots"],
+  ["overlappingBurnshots", "Overlapping burnshots"],
   ["uncuedHits", "Uncued hit"],
   ["skippedHits", "Skipped hit"],
   ["missingHits", "Missing hit"],
@@ -65,9 +67,9 @@ const result = checkLevel(level, {
   interruptiblePattern,
   triangleshot,
 });
-if (result.hasUnsupportedBurnshot) {
+if (result.hasBurnshot) {
   console.warn(
-    `${yellow("Warning")} Level contains burnshots; results will be incorrect`,
+    `${yellow("Warning")} Level contains burnshots; results may be incorrect`,
   );
 }
 const { cpbChanges, tempoChanges } = level;
