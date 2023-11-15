@@ -2,7 +2,6 @@
 
 import { Command } from "./deps/cliffy/command.ts";
 import { joinToString } from "./deps/std/collections/join_to_string.ts";
-import { yellow } from "./deps/std/fmt/colors.ts";
 
 import {
   beatToBar,
@@ -12,7 +11,13 @@ import {
   timeToBeat,
 } from "./mod.ts";
 
+const encoder = new TextEncoder();
 const decoder = new TextDecoder(undefined, { fatal: true });
+
+function warn(message: string): undefined {
+  console.warn("%cWarning%c", "color: yellow", "", message);
+}
+
 const descs = [
   ["invalidCues", "Invalid cue"],
   ["unexpectedSkipshots", "Unexpected skipshot"],
@@ -52,7 +57,7 @@ const {
   )
   .parse();
 if (Deno.isatty(Deno.stdin.rid)) {
-  console.warn(`${yellow("Warning")} Reading from stdin which is a TTY`);
+  warn("Reading from stdin which is a terminal");
 }
 const input = new Uint8Array(
   await new Response(Deno.stdin.readable).arrayBuffer(),
@@ -68,27 +73,28 @@ const result = checkLevel(level, {
   triangleshot,
 });
 if (result.hasBurnshot) {
-  console.warn(
-    `${yellow("Warning")} Level contains burnshots; results may be incorrect`,
-  );
+  warn("Level contains burnshots; results may be incorrect");
 }
 const { cpbChanges, tempoChanges } = level;
 let count = 0;
+let output = "";
 for (const [key, desc] of descs) {
   const pos = result[key];
   if (pos.length === 0) {
     continue;
   }
   count += pos.length;
-  console.log(`${desc}: ${
+  output += `${desc}: ${
     joinToString(
       pos,
       (time) =>
         formatTime(beatToBar(cpbChanges, timeToBeat(tempoChanges, time))),
       { separator: ", " },
     )
-  }`);
+  }\n`;
 }
+await ReadableStream.from([encoder.encode(output)])
+  .pipeTo(Deno.stdout.writable).catch(() => {});
 if (count !== 0) {
   Deno.exit(1);
 }
