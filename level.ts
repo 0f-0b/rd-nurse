@@ -45,6 +45,11 @@ const cueTypeMap = Object.freeze<
   "Count3": [3],
   "Count4": [4],
   "Count5": [5],
+  "Count6": [6],
+  "Count7": [7],
+  "Count8": [8],
+  "Count9": [9],
+  "Count10": [10],
   "SayReadyGetSetGo": [null, null, "get", "set", "go"],
 });
 
@@ -87,14 +92,11 @@ export interface OneshotCue {
   source: CueSource;
 }
 
-export type OneshotBeatOffset =
-  | { mode: "freezeshot"; delay: number; interval: number }
-  | { mode: "burnshot"; delay: number; interval: number };
-
 export interface OneshotBeat {
   time: number;
   skipshot: boolean;
-  offset: OneshotBeatOffset | null;
+  delay: number;
+  interval: number;
 }
 
 export interface Hold {
@@ -167,14 +169,10 @@ export function parseLevel(level: string): Level {
         } = event;
         const parts = cueTypeMap[phraseToSay] ?? [];
         const source = cueSourceMap[voiceSource] ?? "nurse";
-        const { time, beatLength } = beatToTime(tempoChanges, beat);
         for (const [pos, part] of parts.entries()) {
           if (part !== null) {
-            oneshotCues.push({
-              time: time + tick * pos * beatLength,
-              type: part,
-              source,
-            });
+            const { time } = beatToTime(tempoChanges, beat + tick * pos);
+            oneshotCues.push({ time, type: part, source });
           }
         }
         break;
@@ -214,59 +212,39 @@ export function parseLevel(level: string): Level {
         }
         if (freezeBurnMode === "Burnshot") {
           const halfInterval = interval / 2;
-          delay = halfInterval - tick;
+          delay = tick - halfInterval;
           tick = halfInterval;
         }
-        const { time, beatLength } = beatToTime(tempoChanges, beat);
         if (pulseType === "Square" || pulseType === "Triangle") {
           const countingSound = rowCountingSound.get(event.row);
           if (countingSound) {
             const { source, subdivOffset } = countingSound;
-            let cueOffset = pulseType === "Square" ? 0 : subdivOffset * tick;
-            switch (freezeBurnMode) {
-              case "Freezeshot":
-                cueOffset -= interval - tick;
-                break;
-              case "Burnshot":
-                cueOffset -= interval;
-                break;
-            }
-            oneshotCues.push({
-              time: time - cueOffset * beatLength,
-              type: subdivisions,
-              source,
-            });
+            const cueOffset = pulseType === "Square" ? 0 : subdivOffset * tick;
+            const { time } = beatToTime(tempoChanges, beat - cueOffset);
+            oneshotCues.push({ time, type: subdivisions, source });
           }
         }
-        const offset: OneshotBeatOffset | null = (() => {
-          switch (freezeBurnMode) {
-            case "Freezeshot":
-              return {
-                mode: "freezeshot",
-                delay: delay * beatLength,
-                interval: interval * beatLength,
-              };
-            case "Burnshot":
-              return {
-                mode: "burnshot",
-                delay: delay * beatLength,
-                interval: interval * beatLength,
-              };
-            case "None":
-              return null;
-          }
-        })();
         const subinterval = tick / subdivisions;
         for (let pos = 0; pos <= loops; pos++) {
           for (let subdiv = 0; subdiv < subdivisions; subdiv++) {
             const baseOffset = interval * pos + subinterval * subdiv + tick;
             const isLastHit = pos === loops && subdiv === subdivisions - 1;
+            const { time } = beatToTime(tempoChanges, beat + baseOffset);
+            const { time: hit } = beatToTime(
+              tempoChanges,
+              beat + baseOffset + delay,
+            );
+            const { time: prev } = beatToTime(
+              tempoChanges,
+              beat + baseOffset - interval,
+            );
             oneshotBeats.push({
-              time: time + baseOffset * beatLength,
+              time,
               skipshot: skipshot && isLastHit,
-              offset,
+              delay: hit - time,
+              interval: hit === time ? NaN : time - prev,
             });
-            hits.push(time + (baseOffset + delay) * beatLength);
+            hits.push(hit);
           }
         }
         break;

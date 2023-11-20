@@ -1,5 +1,5 @@
 import type { ExpectedBeat } from "./cue.ts";
-import type { Hold, OneshotBeat, OneshotBeatOffset } from "./level.ts";
+import type { Hold, OneshotBeat } from "./level.ts";
 import { almostEqual, cleanUp } from "./util.ts";
 
 export interface CheckOneshotBeatsResult {
@@ -19,7 +19,7 @@ type BeatResult =
   | {
     type: "cued";
     time: number;
-    offset: OneshotBeatOffset | null;
+    delay: number;
     skips: number | null;
   }
   | {
@@ -33,7 +33,7 @@ type BeatResult =
   };
 
 function addBeat(
-  { time, skipshot, offset }: OneshotBeat,
+  { time, skipshot, delay, interval }: OneshotBeat,
   expected: ExpectedBeat[],
 ): BeatResult {
   const matches = expected
@@ -41,17 +41,16 @@ function addBeat(
   if (matches.length === 0) {
     return { type: "uncued", time };
   }
-  if (offset) {
-    const cueTime = time - offset.interval;
+  if (delay !== 0) {
+    const cueTime = time - interval;
     const prev = matches
       .map((match) => match.prev)
       .filter((x) => x !== -1);
     if (!prev.some((x) => almostEqual(x, cueTime))) {
-      switch (offset.mode) {
-        case "freezeshot":
-          return { type: "unexpected_freezeshot", time };
-        case "burnshot":
-          return { type: "unexpected_burnshot", time };
+      if (delay > 0) {
+        return { type: "unexpected_freezeshot", time };
+      } else {
+        return { type: "unexpected_burnshot", time };
       }
     }
   }
@@ -66,16 +65,16 @@ function addBeat(
     if (!next.every((x) => almostEqual(first, x))) {
       return { type: "overlapping_skipshot", time };
     }
-    return { type: "cued", time, offset, skips: first };
+    return { type: "cued", time, delay, skips: first };
   }
-  return { type: "cued", time, offset, skips: null };
+  return { type: "cued", time, delay, skips: null };
 }
 
 export function checkOneshotBeats(
   beats: OneshotBeat[],
   expected: ExpectedBeat[],
 ): CheckOneshotBeatsResult {
-  const hit: { time: number; offset: OneshotBeatOffset | null }[] = [];
+  const hit: { time: number; delay: number }[] = [];
   const skipped: number[] = [];
   const uncued: number[] = [];
   const result: CheckOneshotBeatsResult = {
@@ -91,13 +90,13 @@ export function checkOneshotBeats(
     hasBurnshot: false,
   };
   for (const beat of beats) {
-    if (beat.offset?.mode === "burnshot") {
+    if (beat.delay < 0) {
       result.hasBurnshot = true;
     }
     const beatResult = addBeat(beat, expected);
     switch (beatResult.type) {
       case "cued": {
-        hit.push({ time: beatResult.time, offset: beatResult.offset });
+        hit.push({ time: beatResult.time, delay: beatResult.delay });
         if (beatResult.skips !== null) {
           skipped.push(beatResult.skips);
         }
@@ -109,6 +108,9 @@ export function checkOneshotBeats(
       case "unexpected_freezeshot":
         result.unexpectedFreezeshots.push(beatResult.time);
         break;
+      case "unexpected_burnshot":
+        result.unexpectedBurnshots.push(beatResult.time);
+        break;
       case "unexpected_skipshot":
         result.unexpectedSkipshots.push(beatResult.time);
         break;
@@ -117,35 +119,19 @@ export function checkOneshotBeats(
         break;
     }
   }
-  for (const { time, offset } of hit) {
+  for (const { time, delay } of hit) {
     if (
-      offset && hit.some((x) =>
-        almostEqual(x.time, time) &&
-        !(x.offset?.mode === offset.mode && x.offset.delay === offset.delay)
-      )
+      delay !== 0 &&
+      hit.some((x) => almostEqual(x.time, time) && !almostEqual(x.delay, delay))
     ) {
-      switch (offset.mode) {
-        case "freezeshot":
-          result.overlappingFreezeshots.push(time);
-          break;
-        case "burnshot":
-          result.overlappingBurnshots.push(time);
-          break;
+      if (delay > 0) {
+        result.overlappingFreezeshots.push(time);
+      } else {
+        result.overlappingBurnshots.push(time);
       }
     }
   }
-  const hitTime = hit.map((x) => {
-    let time = x.time;
-    switch (x.offset?.mode) {
-      case "freezeshot":
-        time += x.offset.delay;
-        break;
-      case "burnshot":
-        time -= x.offset.delay;
-        break;
-    }
-    return time;
-  });
+  const hitTime = hit.map((x) => x.time + x.delay);
   for (const time of uncued) {
     if (!hitTime.some((x) => almostEqual(x, time))) {
       result.uncuedHits.push(time);
