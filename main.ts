@@ -56,7 +56,7 @@ const {
     "Enable triangleshots.",
   )
   .parse();
-if (Deno.isatty(Deno.stdin.rid)) {
+if (Deno.stdin.isTerminal()) {
   warn("Reading from stdin which is a terminal");
 }
 const input = new Uint8Array(
