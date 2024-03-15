@@ -55,6 +55,16 @@ const {
     "-t, --triangleshot",
     "Enable triangleshots.",
   )
+  .error((error, cmd) => {
+    cmd.showHelp();
+    console.error(
+      "%cerror%c:",
+      "color: red; font-weight: bold",
+      "",
+      error.message,
+    );
+    Deno.exit(2);
+  })
   .parse();
 if (Deno.stdin.isTerminal()) {
   warn("Reading from stdin which is a terminal");
