@@ -1,1 +1,1 @@
-export * from "jsr:@std/testing@^0.220.1/snapshot";
+export * from "jsr:@std/testing@^0.221.0/snapshot";
