@@ -1,1 +1,1 @@
-export * from "jsr:@std/collections@^0.221.0/join-to-string";
+export * from "jsr:@std/collections@^0.222.1/join-to-string";

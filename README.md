@@ -7,8 +7,9 @@ oneshots and holds.
 
 ## Installation
 
-Make sure you [have Deno installed](https://deno.land/#installation), and then
-run the following in a terminal:
+Make sure you
+[have Deno installed](https://docs.deno.com/runtime/manual/getting_started/installation),
+and then run the following in a terminal:
 
 ```shell
 deno install -fr https://cdn.jsdelivr.net/gh/0f-0b/rd-nurse@main/main.ts
