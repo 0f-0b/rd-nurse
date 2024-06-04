@@ -69,9 +69,7 @@ const {
 if (Deno.stdin.isTerminal()) {
   warn("Reading from stdin which is a terminal");
 }
-const input = new Uint8Array(
-  await new Response(Deno.stdin.readable).arrayBuffer(),
-);
+const input = await new Response(Deno.stdin.readable).bytes();
 if (input.length === 0) {
   cmd.showHelp();
   Deno.exit(2);

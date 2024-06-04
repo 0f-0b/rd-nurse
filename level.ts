@@ -165,7 +165,7 @@ export function parseLevel(level: string): Level {
         const {
           phraseToSay = "SayReadyGetSetGo",
           voiceSource = "Nurse",
-          tick,
+          tick = 1,
         } = event;
         const parts = cueTypeMap[phraseToSay] ?? [];
         const source = cueSourceMap[voiceSource] ?? "nurse";
@@ -192,23 +192,19 @@ export function parseLevel(level: string): Level {
           break;
         }
         let {
-          tick,
+          tick = 1,
           loops = 0,
           interval = 0,
           delay = 0,
           pulseType = "Wave",
           subdivisions = 1,
-          freezeBurnMode,
+          freezeBurnMode = "None",
           skipshot = false,
         } = event;
-        if (freezeBurnMode === undefined) {
-          if (delay > 0) {
-            freezeBurnMode = "Freezeshot";
-            interval -= delay;
-            beat += interval - tick;
-          } else {
-            freezeBurnMode = "None";
-          }
+        if (freezeBurnMode === "None" && delay > 0) {
+          freezeBurnMode = "Freezeshot";
+          interval -= delay;
+          beat += interval - tick;
         }
         if (freezeBurnMode === "Burnshot") {
           const halfInterval = interval / 2;
@@ -253,7 +249,7 @@ export function parseLevel(level: string): Level {
         if (!enabledRows.has(event.row)) {
           break;
         }
-        const { tick, hold = 0 } = event;
+        const { tick = 1, hold = 0 } = event;
         addClassicBeat(beat + tick * 6, hold);
         break;
       }

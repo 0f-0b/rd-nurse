@@ -1,1 +1,1 @@
-export * from "jsr:@std/assert@^0.222.1/assert-equals";
+export * from "jsr:@std/assert@^0.226.0/assert-equals";
