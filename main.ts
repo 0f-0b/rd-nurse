@@ -29,7 +29,6 @@ const descs = [
   ["uncuedHits", "Uncued hit"],
   ["skippedHits", "Skipped hit"],
   ["missingHits", "Missing hit"],
-  ["hitOnHoldRelease", "Hit on hold release"],
   ["overlappingHolds", "Overlapping holds"],
 ] as const;
 const {

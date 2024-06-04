@@ -159,20 +159,13 @@ export function checkOneshotBeats(
 }
 
 export interface CheckHoldsResult {
-  hitOnHoldRelease: number[];
   overlappingHolds: number[];
 }
 
-export function checkHolds(hits: number[], holds: Hold[]): CheckHoldsResult {
+export function checkHolds(holds: Hold[]): CheckHoldsResult {
   const result: CheckHoldsResult = {
-    hitOnHoldRelease: [],
     overlappingHolds: [],
   };
-  for (const hit of hits) {
-    if (holds.some(({ release }) => almostEqual(release, hit))) {
-      result.hitOnHoldRelease.push(hit);
-    }
-  }
   for (const { hit, release } of holds) {
     if (
       holds.some((other) =>
@@ -184,7 +177,6 @@ export function checkHolds(hits: number[], holds: Hold[]): CheckHoldsResult {
       result.overlappingHolds.push(hit);
     }
   }
-  cleanUp(result.hitOnHoldRelease);
   cleanUp(result.overlappingHolds);
   return result;
 }

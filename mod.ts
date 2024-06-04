@@ -71,10 +71,7 @@ export function checkLevel(
     level.oneshotBeats,
     expected,
   );
-  const checkHoldsResult = checkHolds(
-    level.hits,
-    level.holds,
-  );
+  const checkHoldsResult = checkHolds(level.holds);
   return {
     ...checkOneshotCuesResult,
     ...checkOneshotBeatsResult,
