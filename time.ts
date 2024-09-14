@@ -14,10 +14,13 @@ export function getCpbChanges(events: readonly RD.Event[]): CpbChange[] {
     if (event.if || event.tag) {
       continue;
     }
+    const { bar: eventBar = 1 } = event;
     switch (event.type) {
-      case "SetCrotchetsPerBar":
-        cpbChanges.set(event.bar - 1, event.crotchetsPerBar ?? 8);
+      case "SetCrotchetsPerBar": {
+        const { crotchetsPerBar = 8 } = event;
+        cpbChanges.set(eventBar - 1, crotchetsPerBar);
         break;
+      }
     }
   }
   const result: CpbChange[] = [];
@@ -80,16 +83,15 @@ export function getTempoChanges(
   cpbChanges: readonly CpbChange[],
   events: readonly RD.Event[],
 ): TempoChange[] {
-  const firstSong = events.find((event): event is RD.PlaySongEvent =>
-    event.type === "PlaySong"
-  );
+  const firstSong = events.find((event) => event.type === "PlaySong");
   const bpmChanges = new Map([[0, firstSong?.bpm ?? 100]]);
   for (const event of events) {
     if (event.if || event.tag) {
       continue;
     }
-    const beatAndCpb = barToBeat(cpbChanges, event.bar - 1);
-    const beat = beatAndCpb.beat + (event.beat - 1);
+    const { bar: eventBar = 1, beat: eventBeat = 1 } = event;
+    const beatAndCpb = barToBeat(cpbChanges, eventBar - 1);
+    const beat = beatAndCpb.beat + (eventBeat - 1);
     switch (event.type) {
       case "PlaySong":
         bpmChanges.set(beat, event.bpm ?? 100);

@@ -136,7 +136,7 @@ export function parseLevel(level: string): Level {
   const rowCountingSound = new Map<number, CountingSound>();
   const activeEvents = events
     .filter((event) => event.active !== false)
-    .sort((a, b) => a.bar - b.bar);
+    .sort(({ bar: a = 1 }, { bar: b = 1 }) => a - b);
   const cpbChanges = getCpbChanges(activeEvents);
   const tempoChanges = getTempoChanges(cpbChanges, activeEvents);
   const oneshotCues: OneshotCue[] = [];
@@ -157,8 +157,9 @@ export function parseLevel(level: string): Level {
     if (event.if || event.tag) {
       continue;
     }
-    const beatAndCpb = barToBeat(cpbChanges, event.bar - 1);
-    let beat = beatAndCpb.beat + (event.beat - 1);
+    const { bar: eventBar = 1, beat: eventBeat = 1 } = event;
+    const beatAndCpb = barToBeat(cpbChanges, eventBar - 1);
+    let beat = beatAndCpb.beat + (eventBeat - 1);
     const cpb = beatAndCpb.cpb;
     switch (event.type) {
       case "SayReadyGetSetGo": {
@@ -257,15 +258,15 @@ export function parseLevel(level: string): Level {
         if (!enabledRows.has(event.row)) {
           break;
         }
-        const { pulse, hold = 0 } = event;
+        const { pulse = 0, hold = 0 } = event;
         if (pulse === 6) {
           addClassicBeat(beat, hold);
           break;
         }
         freetimes.push({
-          offset: beat - (event.bar * cpb + event.beat),
+          offset: beat - (eventBar * cpb + eventBeat),
           cpb,
-          beat,
+          beat: beat,
           pulse,
         });
         break;
@@ -274,13 +275,13 @@ export function parseLevel(level: string): Level {
         if (!enabledRows.has(event.row)) {
           break;
         }
-        const { action, customPulse, hold = 0 } = event;
+        const { action = "Decrement", customPulse = 0, hold = 0 } = event;
         let remaining = 0;
         for (const freetime of freetimes) {
-          const beat = freetime.offset + event.bar * freetime.cpb + event.beat;
+          const beat = freetime.offset + eventBar * freetime.cpb + eventBeat;
           if (beat > freetime.beat) {
             switch (action) {
-              default:
+              case "Increment":
                 freetime.pulse++;
                 break;
               case "Decrement":

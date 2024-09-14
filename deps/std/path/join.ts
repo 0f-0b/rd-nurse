@@ -1,1 +1,1 @@
-export * from "jsr:@std/path@^0.225.2/join";
+export * from "jsr:@std/path@^1.0.0/join";
