@@ -7,8 +7,8 @@
     }
   },
   "tasks": {
-    "cache": "deno cache main.ts",
-    "lint": "deno fmt --check && deno lint && deno check --all main.ts",
-    "test": "deno test --check=all --allow-read=. --allow-write=testdata/snapshots --allow-run=./main.ts,./main_wrapper.cmd"
+    "cache": "deno cache --allow-import=cdn.jsdelivr.net:443,jsr.io:443 main.ts",
+    "lint": "deno fmt --check && deno lint && deno check --all --allow-import=cdn.jsdelivr.net:443,jsr.io:443 main.ts",
+    "test": "deno test --check=all --allow-import=cdn.jsdelivr.net:443,jsr.io:443 --allow-read=. --allow-write=testdata/snapshots --allow-run=./main.ts,./main_wrapper.cmd"
   }
 }

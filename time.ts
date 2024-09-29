@@ -89,16 +89,18 @@ export function getTempoChanges(
     if (event.if || event.tag) {
       continue;
     }
-    const { bar: eventBar = 1, beat: eventBeat = 1 } = event;
-    const beatAndCpb = barToBeat(cpbChanges, eventBar - 1);
-    const beat = beatAndCpb.beat + (eventBeat - 1);
+    const { bar: eventBar = 1 } = event;
+    let { beat } = barToBeat(cpbChanges, eventBar - 1);
     switch (event.type) {
       case "PlaySong":
         bpmChanges.set(beat, event.bpm ?? 100);
         break;
-      case "SetBeatsPerMinute":
+      case "SetBeatsPerMinute": {
+        const { beat: eventBeat = 1 } = event;
+        beat += eventBeat - 1;
         bpmChanges.set(beat, event.beatsPerMinute ?? 100);
         break;
+      }
     }
   }
   const result: TempoChange[] = [];

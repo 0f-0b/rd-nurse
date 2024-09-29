@@ -157,17 +157,17 @@ export function parseLevel(level: string): Level {
     if (event.if || event.tag) {
       continue;
     }
-    const { bar: eventBar = 1, beat: eventBeat = 1 } = event;
-    const beatAndCpb = barToBeat(cpbChanges, eventBar - 1);
-    let beat = beatAndCpb.beat + (eventBeat - 1);
-    const cpb = beatAndCpb.cpb;
+    const { bar: eventBar = 1 } = event;
+    let { beat, cpb } = barToBeat(cpbChanges, eventBar - 1);
     switch (event.type) {
       case "SayReadyGetSetGo": {
         const {
+          beat: eventBeat = 1,
           phraseToSay = "SayReadyGetSetGo",
           voiceSource = "Nurse",
           tick = 1,
         } = event;
+        beat += eventBeat - 1;
         const parts = cueTypeMap[phraseToSay] ?? [];
         const source = cueSourceMap[voiceSource] ?? "nurse";
         for (const [pos, part] of parts.entries()) {
@@ -193,6 +193,7 @@ export function parseLevel(level: string): Level {
           break;
         }
         let {
+          beat: eventBeat = 1,
           tick = 1,
           loops = 0,
           interval = 0,
@@ -202,6 +203,7 @@ export function parseLevel(level: string): Level {
           freezeBurnMode = "None",
           skipshot = false,
         } = event;
+        beat += eventBeat - 1;
         if (freezeBurnMode === "None" && delay > 0) {
           freezeBurnMode = "Freezeshot";
           interval -= delay;
@@ -250,7 +252,8 @@ export function parseLevel(level: string): Level {
         if (!enabledRows.has(event.row)) {
           break;
         }
-        const { tick = 1, hold = 0 } = event;
+        const { beat: eventBeat = 1, tick = 1, hold = 0 } = event;
+        beat += eventBeat - 1;
         addClassicBeat(beat + tick * 6, hold);
         break;
       }
@@ -258,7 +261,8 @@ export function parseLevel(level: string): Level {
         if (!enabledRows.has(event.row)) {
           break;
         }
-        const { pulse = 0, hold = 0 } = event;
+        const { beat: eventBeat = 1, pulse = 0, hold = 0 } = event;
+        beat += eventBeat - 1;
         if (pulse === 6) {
           addClassicBeat(beat, hold);
           break;
@@ -266,7 +270,7 @@ export function parseLevel(level: string): Level {
         freetimes.push({
           offset: beat - (eventBar * cpb + eventBeat),
           cpb,
-          beat: beat,
+          beat,
           pulse,
         });
         break;
@@ -275,7 +279,12 @@ export function parseLevel(level: string): Level {
         if (!enabledRows.has(event.row)) {
           break;
         }
-        const { action = "Decrement", customPulse = 0, hold = 0 } = event;
+        const {
+          beat: eventBeat = 1,
+          action = "Decrement",
+          customPulse = 0,
+          hold = 0,
+        } = event;
         let remaining = 0;
         for (const freetime of freetimes) {
           const beat = freetime.offset + eventBar * freetime.cpb + eventBeat;
@@ -306,6 +315,8 @@ export function parseLevel(level: string): Level {
         break;
       }
       case "FinishLevel": {
+        const { beat: eventBeat = 1 } = event;
+        beat += eventBeat - 1;
         const { time } = beatToTime(tempoChanges, beat);
         for (const source of cueSources) {
           oneshotCues.push({ time, type: "stop", source });
