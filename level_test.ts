@@ -6,7 +6,7 @@ import { type Level, parseLevel } from "./level.ts";
 
 function readTestdata(path: string | URL): string {
   const text = Deno.readTextFileSync(path);
-  return text.charAt(0) === "\ufeff" ? text.substring(1) : text;
+  return text.charAt(0) === "\u{feff}" ? text.substring(1) : text;
 }
 
 const testdata = fromFileUrl(new URL("testdata", import.meta.url));
